@@ -1,0 +1,46 @@
+# Binaries
+/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+api
+
+# Go
+*.test
+*.out
+go.work
+vendor/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Uploads (локальные загрузки)
+/uploads/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage.html
+coverage.out
+
+# Temporary
+tmp/
+temp/
+*.tmp
