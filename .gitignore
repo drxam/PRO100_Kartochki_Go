@@ -5,7 +5,7 @@
 *.dll
 *.so
 *.dylib
-api
+/api
 
 # Go
 *.test
