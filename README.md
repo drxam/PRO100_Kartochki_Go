@@ -1,4 +1,4 @@
-# МозгоЁмка — Backend
+# PRO100_Kartochki — Backend
 
 REST API для приложения карточек «PRO100_Kartochki» на Go (Clean Architecture).
 
