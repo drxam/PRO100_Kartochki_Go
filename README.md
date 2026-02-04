@@ -1,6 +1,6 @@
 # МозгоЁмка — Backend
 
-REST API для приложения карточек «МозгоЁмка» на Go (Clean Architecture).
+REST API для приложения карточек «PRO100_Kartochki» на Go (Clean Architecture).
 
 ## Требования
 
@@ -30,15 +30,15 @@ REST API для приложения карточек «МозгоЁмка» н�
 1. Создайте БД и примените миграции:
 
 ```bash
-psql -U postgres -c "CREATE DATABASE mozgoemka;"
-psql -U postgres -d mozgoemka -f migrations/001_init.up.sql
+psql -U postgres -c "CREATE DATABASE PRO100_Kartochki;"
+psql -U postgres -d PRO100_Kartochki -f migrations/001_init.up.sql
 ```
 
 2. Переменные окружения (опционально):
 
 ```bash
 export PORT=8080
-export DATABASE_DSN="postgres://user:pass@localhost:5432/mozgoemka?sslmode=disable"
+export DATABASE_DSN="postgres://user:pass@localhost:5432/PRO100_Kartochki?sslmode=disable"
 export JWT_ACCESS_SECRET="your-access-secret"
 export JWT_REFRESH_SECRET="your-refresh-secret"
 ```
