@@ -1,0 +1,24 @@
+# Локальная разработка модуля «Пользователи и доступ».
+# Запуск: docker compose up -d
+# Применение миграций: см. Makefile (make compose-migrate-up).
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pro100_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mozgoemka
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations:/migrations:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mozgoemka"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:

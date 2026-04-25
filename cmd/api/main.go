@@ -11,6 +11,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pro100kartochki/mozgoemka/internal/config"
+	"github.com/pro100kartochki/mozgoemka/internal/domain"
 	"github.com/pro100kartochki/mozgoemka/internal/handler"
 	"github.com/pro100kartochki/mozgoemka/internal/middleware"
 	"github.com/pro100kartochki/mozgoemka/internal/repository"
@@ -18,6 +19,7 @@ import (
 	"github.com/pro100kartochki/mozgoemka/pkg/jwt"
 	"github.com/pro100kartochki/mozgoemka/pkg/validator"
 	"go.uber.org/zap"
+	"golang.org/x/time/rate"
 
 	_ "github.com/pro100kartochki/mozgoemka/docs"
 	"github.com/gin-gonic/gin"
@@ -56,6 +58,7 @@ func main() {
 	db := repository.NewDB(pool)
 	userRepo := repository.NewUserRepository(db)
 	tokenRepo := repository.NewRefreshTokenRepository(db)
+	resetRepo := repository.NewPasswordResetRepository(db)
 	categoryRepo := repository.NewCategoryRepository(db)
 	tagRepo := repository.NewTagRepository(db)
 	deckRepo := repository.NewDeckRepository(db)
@@ -70,16 +73,19 @@ func main() {
 
 	v := validator.New()
 
-	authSvc := service.NewAuthService(userRepo, tokenRepo, jwtManager)
+	authSvc := service.NewAuthService(userRepo, tokenRepo, resetRepo, jwtManager)
 	userSvc := service.NewUserService(userRepo, deckRepo, cardRepo)
 	userSvc.SetUploadConfig(cfg.UploadPath, cfg.BaseURL)
+	adminSvc := service.NewAdminService(userRepo, tokenRepo)
 	categorySvc := service.NewCategoryService(categoryRepo)
 	tagSvc := service.NewTagService(tagRepo)
 	deckSvc := service.NewDeckService(deckRepo, cardRepo, userRepo, categoryRepo, tagRepo)
 	cardSvc := service.NewCardService(cardRepo, deckRepo, categoryRepo, tagRepo)
 
 	authHandler := handler.NewAuthHandler(authSvc, v)
+	authHandler.SetDevReturnResetToken(cfg.PasswordResetReturnToken)
 	userHandler := handler.NewUserHandler(userSvc, v)
+	adminHandler := handler.NewAdminHandler(adminSvc, v)
 	categoryHandler := handler.NewCategoryHandler(categorySvc, v)
 	tagHandler := handler.NewTagHandler(tagSvc, v)
 	deckHandler := handler.NewDeckHandler(deckSvc, v)
@@ -95,12 +101,32 @@ func main() {
 	r.Static("/uploads", cfg.UploadPath)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	// Rate limiting (ТЗ §4.1).
+	globalLimiter := middleware.NewRateLimiter(
+		rate.Limit(cfg.RateLimit.GlobalRPS),
+		cfg.RateLimit.GlobalBurst,
+		cfg.RateLimit.IdleTTL,
+	)
+	authLimiter := middleware.NewRateLimiter(
+		rate.Limit(cfg.RateLimit.AuthPerMin/60.0), // RPM → RPS
+		cfg.RateLimit.AuthBurst,
+		cfg.RateLimit.IdleTTL,
+	)
+
 	api := r.Group("/api")
+	api.Use(globalLimiter.Middleware())
 	{
-		api.POST("/auth/register", authHandler.Register)
-		api.POST("/auth/login", authHandler.Login)
-		api.POST("/auth/refresh", authHandler.Refresh)
-		api.POST("/auth/forgot-password", authHandler.ForgotPassword)
+		// Жёсткий отдельный лимит на публичные auth-эндпоинты — защита от
+		// брутфорса логина и форсированных запросов на сброс пароля.
+		authPublic := api.Group("/auth")
+		authPublic.Use(authLimiter.Middleware())
+		{
+			authPublic.POST("/register", authHandler.Register)
+			authPublic.POST("/login", authHandler.Login)
+			authPublic.POST("/refresh", authHandler.Refresh)
+			authPublic.POST("/forgot-password", authHandler.ForgotPassword)
+			authPublic.POST("/reset-password", authHandler.ResetPassword)
+		}
 
 		api.GET("/categories", categoryHandler.List)
 		api.GET("/tags", tagHandler.List)
@@ -108,7 +134,7 @@ func main() {
 		api.GET("/public/decks/:id", deckHandler.GetPublicByID)
 
 		auth := api.Group("")
-		auth.Use(middleware.Auth(jwtManager))
+		auth.Use(middleware.Auth(jwtManager, userRepo))
 		{
 			auth.POST("/auth/logout", authHandler.Logout)
 			auth.GET("/users/me", userHandler.GetProfile)
@@ -126,11 +152,22 @@ func main() {
 
 			auth.GET("/cards", cardHandler.List)
 			auth.POST("/cards", cardHandler.Create)
-			auth.GET("/decks/:deck_id/cards", cardHandler.ListByDeck)
-			auth.POST("/decks/:deck_id/cards", cardHandler.Create)
+			auth.GET("/decks/:id/cards", cardHandler.ListByDeck)
+			auth.POST("/decks/:id/cards", cardHandler.Create)
 			auth.GET("/cards/:id", cardHandler.GetByID)
 			auth.PUT("/cards/:id", cardHandler.Update)
 			auth.DELETE("/cards/:id", cardHandler.Delete)
+
+			// Админский раздел: управление учётными записями (модуль «Пользователи и доступ»).
+			admin := auth.Group("/admin")
+			admin.Use(middleware.RequireRole(domain.RoleAdmin))
+			{
+				admin.GET("/users", adminHandler.ListUsers)
+				admin.GET("/users/:id", adminHandler.GetUser)
+				admin.PATCH("/users/:id/block", adminHandler.BlockUser)
+				admin.PATCH("/users/:id/role", adminHandler.SetUserRole)
+				admin.DELETE("/users/:id", adminHandler.DeleteUser)
+			}
 		}
 	}
 
@@ -138,9 +175,19 @@ func main() {
 		Addr:    ":" + cfg.Server.Port,
 		Handler: r,
 	}
+	useTLS := cfg.Server.TLSCertFile != "" && cfg.Server.TLSKeyFile != ""
 	go func() {
-		logger.Info("server started", zap.String("port", cfg.Server.Port))
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logger.Info("server started",
+			zap.String("port", cfg.Server.Port),
+			zap.Bool("tls", useTLS),
+		)
+		var err error
+		if useTLS {
+			err = srv.ListenAndServeTLS(cfg.Server.TLSCertFile, cfg.Server.TLSKeyFile)
+		} else {
+			err = srv.ListenAndServe()
+		}
+		if err != nil && err != http.ErrServerClosed {
 			logger.Fatal("server", zap.Error(err))
 		}
 	}()

@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 // DTO для запросов/ответов API
 
 type LoginRequest struct {
@@ -18,6 +20,19 @@ type RefreshRequest struct {
 
 type ForgotPasswordRequest struct {
 	Email string `json:"email" binding:"required,email"`
+}
+
+// ForgotPasswordResponse — ответ на /auth/forgot-password.
+// reset_token заполняется только если включён dev-флаг PASSWORD_RESET_RETURN_TOKEN —
+// в production токен доставляется по email.
+type ForgotPasswordResponse struct {
+	Message    string `json:"message"`
+	ResetToken string `json:"reset_token,omitempty"`
+}
+
+type ResetPasswordRequest struct {
+	Token       string `json:"token" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=8,password"`
 }
 
 // AuthRegisterResponse (201)
@@ -78,6 +93,33 @@ type UserStats struct {
 
 type UpdateProfileRequest struct {
 	Username *string `json:"username,omitempty"`
+}
+
+// Admin DTO (модуль «Пользователи и доступ» — ТЗ §4.1) ----------------------
+
+type AdminUserBrief struct {
+	ID        int        `json:"id"`
+	Email     string     `json:"email"`
+	Username  *string    `json:"username,omitempty"`
+	AvatarURL *string    `json:"avatar_url,omitempty"`
+	Role      string     `json:"role"`
+	IsBlocked bool       `json:"is_blocked"`
+	BlockedAt *time.Time `json:"blocked_at,omitempty"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+}
+
+type AdminUsersListResponse struct {
+	Users      []AdminUserBrief `json:"users"`
+	Pagination Pagination       `json:"pagination"`
+}
+
+type AdminBlockUserRequest struct {
+	Blocked bool `json:"blocked"`
+}
+
+type AdminSetRoleRequest struct {
+	Role string `json:"role" binding:"required"`
 }
 
 // DecksListResponse (200) — GET /decks

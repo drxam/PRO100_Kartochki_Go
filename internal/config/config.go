@@ -10,15 +10,30 @@ import (
 )
 
 type Config struct {
-	Server    Server
-	Database  Database
-	JWT       JWT
-	UploadPath string
-	BaseURL   string
+	Server                   Server
+	Database                 Database
+	JWT                      JWT
+	RateLimit                RateLimit
+	UploadPath               string
+	BaseURL                  string
+	PasswordResetReturnToken bool
+}
+
+// RateLimit — параметры ограничения частоты запросов (ТЗ §4.1).
+// «Auth» применяется отдельно к публичным эндпоинтам /auth/* для защиты от
+// брутфорса логина и сброса пароля; «Global» — мягкий лимит на весь API.
+type RateLimit struct {
+	GlobalRPS   float64       // запросов в секунду
+	GlobalBurst int           // допустимый пиковый burst
+	AuthPerMin  float64       // запросов в минуту
+	AuthBurst   int
+	IdleTTL     time.Duration // как долго хранить bucket для неактивного IP
 }
 
 type Server struct {
-	Port string
+	Port        string
+	TLSCertFile string // если непустой — сервер запускается через ListenAndServeTLS
+	TLSKeyFile  string
 }
 
 type Database struct {
@@ -69,7 +84,9 @@ func Load() *Config {
 	port := getEnv("SERVER_PORT", getEnv("PORT", "8080"))
 	return &Config{
 		Server: Server{
-			Port: port,
+			Port:        port,
+			TLSCertFile: getEnv("TLS_CERT_FILE", ""),
+			TLSKeyFile:  getEnv("TLS_KEY_FILE", ""),
 		},
 		Database: Database{DSN: dsn},
 		JWT: JWT{
@@ -78,9 +95,37 @@ func Load() *Config {
 			AccessTTL:     accessTTL,
 			RefreshTTL:    refreshTTL,
 		},
-		UploadPath: uploadPath,
-		BaseURL:    baseURL,
+		RateLimit: RateLimit{
+			GlobalRPS:   getEnvFloat("RATE_LIMIT_GLOBAL_RPS", 100),
+			GlobalBurst: getEnvInt("RATE_LIMIT_GLOBAL_BURST", 200),
+			AuthPerMin:  getEnvFloat("RATE_LIMIT_AUTH_PER_MIN", 20),
+			AuthBurst:   getEnvInt("RATE_LIMIT_AUTH_BURST", 5),
+			IdleTTL:     5 * time.Minute,
+		},
+		UploadPath:               uploadPath,
+		BaseURL:                  baseURL,
+		PasswordResetReturnToken: getEnv("PASSWORD_RESET_RETURN_TOKEN", "false") == "true",
 	}
+}
+
+func getEnvInt(key string, defaultVal int) int {
+	if v := os.Getenv(key); v != "" {
+		var n int
+		if _, err := fmt.Sscanf(v, "%d", &n); err == nil {
+			return n
+		}
+	}
+	return defaultVal
+}
+
+func getEnvFloat(key string, defaultVal float64) float64 {
+	if v := os.Getenv(key); v != "" {
+		var f float64
+		if _, err := fmt.Sscanf(v, "%f", &f); err == nil {
+			return f
+		}
+	}
+	return defaultVal
 }
 
 func getEnv(key, defaultVal string) string {

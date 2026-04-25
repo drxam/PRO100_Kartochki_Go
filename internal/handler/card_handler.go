@@ -57,10 +57,10 @@ func (h *CardHandler) List(c *gin.Context) {
 	JSON(c, resp)
 }
 
-// Create создаёт карточку (POST /api/cards — deck_id в body; или POST /api/decks/:deck_id/cards)
+// Create создаёт карточку (POST /api/cards — deck_id в body; или POST /api/decks/:id/cards)
 func (h *CardHandler) Create(c *gin.Context) {
 	deckID := 0
-	if idStr := c.Param("deck_id"); idStr != "" {
+	if idStr := c.Param("id"); idStr != "" {
 		if n, err := strconv.Atoi(idStr); err == nil {
 			deckID = n
 		}
@@ -121,9 +121,9 @@ func (h *CardHandler) GetByID(c *gin.Context) {
 	JSON(c, item)
 }
 
-// ListByDeck карточки набора (GET /api/decks/:deck_id/cards)
+// ListByDeck карточки набора (GET /api/decks/:id/cards)
 func (h *CardHandler) ListByDeck(c *gin.Context) {
-	deckID, err := strconv.Atoi(c.Param("deck_id"))
+	deckID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		BadRequestSimple(c, "неверный ID набора")
 		return

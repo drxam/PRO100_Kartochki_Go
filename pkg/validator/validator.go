@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -22,6 +23,14 @@ func New() *Validator {
 	v := validator.New()
 	_ = v.RegisterValidation("email", validateEmail)
 	_ = v.RegisterValidation("password", validatePassword)
+
+	// Те же кастомные теги нужны и Gin-овскому validator-у, который дёргается
+	// внутри c.ShouldBindJSON. Иначе binding-валидация паникует на теге `password`.
+	if gv, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		_ = gv.RegisterValidation("email", validateEmail)
+		_ = gv.RegisterValidation("password", validatePassword)
+	}
+
 	return &Validator{validate: v}
 }
 
