@@ -9,6 +9,7 @@ import (
 	"github.com/pro100kartochki/mozgoemka/internal/repository"
 	"github.com/pro100kartochki/mozgoemka/internal/service"
 	"github.com/pro100kartochki/mozgoemka/pkg/validator"
+	"go.uber.org/zap"
 )
 
 // AdminHandler — эндпоинты управления учётными записями (модуль «Пользователи и доступ»).
@@ -103,6 +104,11 @@ func (h *AdminHandler) BlockUser(c *gin.Context) {
 		}
 		return
 	}
+	Audit(c, "admin.user.blocked",
+		zap.Int("actor_id", actorID),
+		zap.Int("target_id", id),
+		zap.Bool("blocked", req.Blocked),
+	)
 	NoContent(c)
 }
 
@@ -133,6 +139,10 @@ func (h *AdminHandler) DeleteUser(c *gin.Context) {
 		}
 		return
 	}
+	Audit(c, "admin.user.deleted",
+		zap.Int("actor_id", actorID),
+		zap.Int("target_id", id),
+	)
 	NoContent(c)
 }
 
@@ -171,5 +181,10 @@ func (h *AdminHandler) SetUserRole(c *gin.Context) {
 		}
 		return
 	}
+	Audit(c, "admin.user.role_changed",
+		zap.Int("actor_id", actorID),
+		zap.Int("target_id", id),
+		zap.String("role", req.Role),
+	)
 	NoContent(c)
 }

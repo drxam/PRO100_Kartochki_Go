@@ -4,7 +4,31 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
+
+// auditLogger — общий zap-логгер для аудита чувствительных операций
+// (вход/выход, регистрация, сброс пароля, блокировка, смена ролей).
+// Все записи помечены полем audit=true для фильтрации в SIEM/grep.
+var auditLogger *zap.Logger = zap.NewNop()
+
+// SetAuditLogger подключает реальный логгер; вызывается в main.go.
+func SetAuditLogger(l *zap.Logger) {
+	auditLogger = l
+}
+
+// Audit пишет аудитное событие. event — короткое имя (auth.login.success и т.п.),
+// extra — дополнительные структурированные поля. client_ip берётся из gin.Context.
+func Audit(c *gin.Context, event string, extra ...zap.Field) {
+	fields := make([]zap.Field, 0, len(extra)+3)
+	fields = append(fields,
+		zap.Bool("audit", true),
+		zap.String("event", event),
+		zap.String("client_ip", c.ClientIP()),
+	)
+	fields = append(fields, extra...)
+	auditLogger.Info("audit", fields...)
+}
 
 // Коды ошибок по спецификации
 const (

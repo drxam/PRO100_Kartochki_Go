@@ -1,0 +1,722 @@
+basePath: /api
+definitions:
+  github_com_pro100kartochki_mozgoemka_internal_domain.AdminBlockUserRequest:
+    properties:
+      blocked:
+        type: boolean
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.AdminSetRoleRequest:
+    properties:
+      role:
+        type: string
+    required:
+    - role
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.AdminUserBrief:
+    properties:
+      avatar_url:
+        type: string
+      blocked_at:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_blocked:
+        type: boolean
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.AdminUsersListResponse:
+    properties:
+      pagination:
+        $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.Pagination'
+      users:
+        items:
+          $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AdminUserBrief'
+        type: array
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.AuthLoginResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AuthUserFull'
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.AuthRefreshResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.AuthRegisterResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AuthUserBrief'
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.AuthUserBrief:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.AuthUserFull:
+    properties:
+      avatar_url:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.Category:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.CreateCategoryRequest:
+    properties:
+      name:
+        maxLength: 100
+        type: string
+    required:
+    - name
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.CreateTagRequest:
+    properties:
+      name:
+        maxLength: 100
+        type: string
+    required:
+    - name
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.ForgotPasswordResponse:
+    properties:
+      message:
+        type: string
+      reset_token:
+        type: string
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.Pagination:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.ResetPasswordRequest:
+    properties:
+      new_password:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - new_password
+    - token
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.Tag:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.UpdateProfileRequest:
+    properties:
+      username:
+        type: string
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.User:
+    properties:
+      avatar_url:
+        type: string
+      blocked_at:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_blocked:
+        type: boolean
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.UserProfileResponse:
+    properties:
+      avatar_url:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+      stats:
+        $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.UserStats'
+      username:
+        type: string
+    type: object
+  github_com_pro100kartochki_mozgoemka_internal_domain.UserStats:
+    properties:
+      cards_count:
+        type: integer
+      decks_count:
+        type: integer
+    type: object
+  internal_handler.ErrorPayload:
+    properties:
+      code:
+        type: string
+      details: {}
+      message:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: REST API для приложения карточек МозгоЁмка
+  title: МозгоЁмка API
+  version: "1.0"
+paths:
+  /admin/users:
+    get:
+      parameters:
+      - description: Номер страницы (по умолчанию 1)
+        in: query
+        name: page
+        type: integer
+      - description: Размер страницы (по умолчанию 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Показывать ли мягко удалённых
+        in: query
+        name: include_deleted
+        type: boolean
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AdminUsersListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      security:
+      - BearerAuth: []
+      summary: Список пользователей
+      tags:
+      - admin
+  /admin/users/{id}:
+    delete:
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      security:
+      - BearerAuth: []
+      summary: Мягко удалить пользователя
+      tags:
+      - admin
+    get:
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AdminUserBrief'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      security:
+      - BearerAuth: []
+      summary: Получить пользователя по id
+      tags:
+      - admin
+  /admin/users/{id}/block:
+    patch:
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'blocked: true|false'
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AdminBlockUserRequest'
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      security:
+      - BearerAuth: []
+      summary: Заблокировать или разблокировать пользователя
+      tags:
+      - admin
+  /admin/users/{id}/role:
+    patch:
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'role: user|moderator|admin'
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AdminSetRoleRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      security:
+      - BearerAuth: []
+      summary: Назначить роль пользователю
+      tags:
+      - admin
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: email
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.ForgotPasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      summary: Запросить ссылку для сброса пароля
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: email + password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AuthLoginResponse'
+        "401":
+          description: неверный email или пароль
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+        "403":
+          description: учётная запись заблокирована
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      summary: Вход в систему
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: refresh_token (опционально)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Выход из системы (инвалидация refresh-токена)
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: refresh_token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AuthRefreshResponse'
+        "401":
+          description: недействительный refresh-токен
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+        "403":
+          description: учётная запись заблокирована
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      summary: Обновление access-токена по refresh-токену
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: email + password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AuthRegisterResponse'
+        "400":
+          description: ошибка валидации
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+        "409":
+          description: email уже существует
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      summary: Регистрация нового пользователя
+      tags:
+      - auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: token + new_password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: недействительный/истёкший токен
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+        "403":
+          description: учётная запись заблокирована
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      summary: Сменить пароль по токену из ссылки
+      tags:
+      - auth
+  /categories:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.Category'
+            type: array
+      summary: Список категорий
+      tags:
+      - categories
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Название
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.Category'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Создать категорию
+      tags:
+      - categories
+  /tags:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.Tag'
+            type: array
+      summary: Список тегов
+      tags:
+      - tags
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Название
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.CreateTagRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.Tag'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Создать тег
+      tags:
+      - tags
+  /users/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.UserProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      security:
+      - BearerAuth: []
+      summary: Профиль текущего пользователя
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: поля для изменения
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.User'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      security:
+      - BearerAuth: []
+      summary: Изменить профиль текущего пользователя
+      tags:
+      - users
+  /users/me/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: файл изображения
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{ avatar_url }'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.ErrorPayload'
+      security:
+      - BearerAuth: []
+      summary: Загрузить аватар (JPG/PNG, ≤ 5 MB)
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

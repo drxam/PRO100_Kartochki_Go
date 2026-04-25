@@ -14,9 +14,19 @@ type Config struct {
 	Database                 Database
 	JWT                      JWT
 	RateLimit                RateLimit
+	BootstrapAdmin           BootstrapAdmin
 	UploadPath               string
 	BaseURL                  string
 	PasswordResetReturnToken bool
+}
+
+// BootstrapAdmin — опциональное автоматическое создание/повышение учётной
+// записи администратора при старте сервиса. Если заданы оба поля, при
+// каждом запуске пользователь с этим email будет либо создан с ролью admin,
+// либо повышен до admin (если уже существовал и не имел этой роли).
+type BootstrapAdmin struct {
+	Email    string
+	Password string
 }
 
 // RateLimit — параметры ограничения частоты запросов (ТЗ §4.1).
@@ -101,6 +111,10 @@ func Load() *Config {
 			AuthPerMin:  getEnvFloat("RATE_LIMIT_AUTH_PER_MIN", 20),
 			AuthBurst:   getEnvInt("RATE_LIMIT_AUTH_BURST", 5),
 			IdleTTL:     5 * time.Minute,
+		},
+		BootstrapAdmin: BootstrapAdmin{
+			Email:    getEnv("BOOTSTRAP_ADMIN_EMAIL", ""),
+			Password: getEnv("BOOTSTRAP_ADMIN_PASSWORD", ""),
 		},
 		UploadPath:               uploadPath,
 		BaseURL:                  baseURL,

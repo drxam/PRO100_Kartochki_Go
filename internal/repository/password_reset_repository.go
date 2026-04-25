@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/pro100kartochki/mozgoemka/internal/domain"
@@ -52,4 +53,19 @@ func (r *PasswordResetRepository) InvalidateActiveForUser(ctx context.Context, u
 		`UPDATE password_reset_tokens SET used_at = NOW()
 		 WHERE user_id = $1 AND used_at IS NULL`, userID)
 	return err
+}
+
+// DeleteExpired удаляет полностью отработавшие токены сброса:
+// либо истёкшие, либо использованные более `retentionForUsed` назад.
+// Использованные держим короткое время для возможного аудита.
+func (r *PasswordResetRepository) DeleteExpired(ctx context.Context, retentionForUsed time.Duration) (int64, error) {
+	threshold := time.Now().Add(-retentionForUsed)
+	tag, err := r.db.Pool.Exec(ctx,
+		`DELETE FROM password_reset_tokens
+		 WHERE expires_at < NOW() OR (used_at IS NOT NULL AND used_at < $1)`,
+		threshold)
+	if err != nil {
+		return 0, err
+	}
+	return tag.RowsAffected(), nil
 }

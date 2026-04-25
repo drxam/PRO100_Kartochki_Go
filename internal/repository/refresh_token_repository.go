@@ -43,3 +43,13 @@ func (r *RefreshTokenRepository) DeleteByUserID(ctx context.Context, userID int)
 	_, err := r.db.Pool.Exec(ctx, `DELETE FROM refresh_tokens WHERE user_id = $1`, userID)
 	return err
 }
+
+// DeleteExpired удаляет refresh-токены с истёкшим сроком действия.
+// Возвращает число удалённых строк — для логирования.
+func (r *RefreshTokenRepository) DeleteExpired(ctx context.Context) (int64, error) {
+	tag, err := r.db.Pool.Exec(ctx, `DELETE FROM refresh_tokens WHERE expires_at < NOW()`)
+	if err != nil {
+		return 0, err
+	}
+	return tag.RowsAffected(), nil
+}

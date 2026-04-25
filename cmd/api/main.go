@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"os"
@@ -45,7 +46,8 @@ func main() {
 	}
 	defer logger.Sync()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	pool, err := pgxpool.New(ctx, cfg.Database.DSN)
 	if err != nil {
 		logger.Fatal("database", zap.Error(err))
@@ -63,6 +65,11 @@ func main() {
 	tagRepo := repository.NewTagRepository(db)
 	deckRepo := repository.NewDeckRepository(db)
 	cardRepo := repository.NewCardRepository(db)
+
+	bootstrapAdmin(ctx, logger, userRepo, cfg.BootstrapAdmin.Email, cfg.BootstrapAdmin.Password)
+
+	// Фоновая чистка истёкших токенов (refresh + password reset).
+	go runCleanupLoop(ctx, logger, tokenRepo, resetRepo, 1*time.Hour)
 
 	jwtManager := jwt.NewManager(jwt.Config{
 		AccessSecret:  cfg.JWT.AccessSecret,
@@ -82,6 +89,8 @@ func main() {
 	deckSvc := service.NewDeckService(deckRepo, cardRepo, userRepo, categoryRepo, tagRepo)
 	cardSvc := service.NewCardService(cardRepo, deckRepo, categoryRepo, tagRepo)
 
+	handler.SetAuditLogger(logger)
+
 	authHandler := handler.NewAuthHandler(authSvc, v)
 	authHandler.SetDevReturnResetToken(cfg.PasswordResetReturnToken)
 	userHandler := handler.NewUserHandler(userSvc, v)
@@ -97,7 +106,18 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logging(logger))
 
-	r.GET("/health", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"status": "ok"}) })
+	r.GET("/health", func(c *gin.Context) {
+		pingCtx, cancel := context.WithTimeout(c.Request.Context(), 1*time.Second)
+		defer cancel()
+		if err := pool.Ping(pingCtx); err != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{
+				"status": "unavailable",
+				"error":  "database",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
 	r.Static("/uploads", cfg.UploadPath)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -174,6 +194,10 @@ func main() {
 	srv := &http.Server{
 		Addr:    ":" + cfg.Server.Port,
 		Handler: r,
+		// TLS: запрещаем legacy версии — TLS 1.0/1.1 уже не используются ни одним
+		// поддерживаемым клиентом (iOS 12+, современные браузеры) и считаются
+		// небезопасными.
+		TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12},
 	}
 	useTLS := cfg.Server.TLSCertFile != "" && cfg.Server.TLSKeyFile != ""
 	go func() {

@@ -1,6 +1,7 @@
-# Локальная разработка модуля «Пользователи и доступ».
-# Запуск: docker compose up -d
-# Применение миграций: см. Makefile (make compose-migrate-up).
+# Полный запуск стенда:  docker compose up --build
+#
+# Поднимает PostgreSQL, прогоняет все *.up.sql миграции и стартует API
+# с бутстрапным admin-аккаунтом. Healthcheck'и обеспечивают порядок старта.
 services:
   postgres:
     image: postgres:16-alpine
@@ -19,6 +20,49 @@ services:
       interval: 2s
       timeout: 3s
       retries: 20
+
+  # Одноразовый прогон миграций. Идемпотентен (CREATE ... IF NOT EXISTS).
+  migrate:
+    image: postgres:16-alpine
+    container_name: pro100_migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations:ro
+    environment:
+      PGPASSWORD: postgres
+    entrypoint: ["sh", "-c"]
+    command: |
+      'for f in /migrations/*.up.sql; do
+        echo "==> applying $$f";
+        psql -h postgres -U postgres -d mozgoemka -v ON_ERROR_STOP=1 -f "$$f" || exit 1;
+      done'
+    restart: "no"
+
+  api:
+    build: .
+    container_name: pro100_api
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: mozgoemka
+      DB_SSLMODE: disable
+      JWT_ACCESS_SECRET: change-me-access
+      JWT_REFRESH_SECRET: change-me-refresh
+      SERVER_PORT: 8080
+      SERVER_BASE_URL: http://localhost:8080
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-admin@example.com}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-admin1234}
+      PASSWORD_RESET_RETURN_TOKEN: "true"
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
 
 volumes:
   pgdata:

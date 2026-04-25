@@ -22,6 +22,14 @@ func NewUserHandler(userService *service.UserService, v *validator.Validator) *U
 	return &UserHandler{userService: userService, validator: v}
 }
 
+// GetProfile godoc
+// @Summary  Профиль текущего пользователя
+// @Tags     users
+// @Security BearerAuth
+// @Produce  json
+// @Success  200 {object} domain.UserProfileResponse
+// @Failure  401 {object} handler.ErrorPayload
+// @Router   /users/me [get]
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 	resp, err := h.userService.GetProfile(c.Request.Context(), userID)
@@ -32,6 +40,16 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	JSON(c, resp)
 }
 
+// UpdateProfile godoc
+// @Summary  Изменить профиль текущего пользователя
+// @Tags     users
+// @Security BearerAuth
+// @Accept   json
+// @Produce  json
+// @Param    body body domain.UpdateProfileRequest true "поля для изменения"
+// @Success  200 {object} domain.User
+// @Failure  401 {object} handler.ErrorPayload
+// @Router   /users/me [put]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 	var req domain.UpdateProfileRequest
@@ -53,6 +71,16 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	JSON(c, u)
 }
 
+// UploadAvatar godoc
+// @Summary  Загрузить аватар (JPG/PNG, ≤ 5 MB)
+// @Tags     users
+// @Security BearerAuth
+// @Accept   multipart/form-data
+// @Produce  json
+// @Param    avatar formData file true "файл изображения"
+// @Success  200 {object} map[string]string "{ avatar_url }"
+// @Failure  400 {object} handler.ErrorPayload
+// @Router   /users/me/avatar [post]
 func (h *UserHandler) UploadAvatar(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 	file, err := c.FormFile("avatar")
