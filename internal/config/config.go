@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -15,6 +16,7 @@ type Config struct {
 	JWT                      JWT
 	RateLimit                RateLimit
 	BootstrapAdmin           BootstrapAdmin
+	CORSOrigins              []string
 	UploadPath               string
 	BaseURL                  string
 	PasswordResetReturnToken bool
@@ -116,6 +118,7 @@ func Load() *Config {
 			Email:    getEnv("BOOTSTRAP_ADMIN_EMAIL", ""),
 			Password: getEnv("BOOTSTRAP_ADMIN_PASSWORD", ""),
 		},
+		CORSOrigins: parseCSV(getEnv("CORS_ORIGINS", "")),
 		UploadPath:               uploadPath,
 		BaseURL:                  baseURL,
 		PasswordResetReturnToken: getEnv("PASSWORD_RESET_RETURN_TOKEN", "false") == "true",
@@ -130,6 +133,22 @@ func getEnvInt(key string, defaultVal int) int {
 		}
 	}
 	return defaultVal
+}
+
+// parseCSV режет строку через запятую и обрезает пробелы у каждого элемента.
+// Пустые значения отбрасываются. Используется для CORS_ORIGINS и т. п.
+func parseCSV(s string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if v := strings.TrimSpace(p); v != "" {
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 func getEnvFloat(key string, defaultVal float64) float64 {

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pro100kartochki/mozgoemka/internal/middleware"
 	"go.uber.org/zap"
 )
 
@@ -18,13 +19,15 @@ func SetAuditLogger(l *zap.Logger) {
 }
 
 // Audit пишет аудитное событие. event — короткое имя (auth.login.success и т.п.),
-// extra — дополнительные структурированные поля. client_ip берётся из gin.Context.
+// extra — дополнительные структурированные поля. client_ip и request_id
+// берутся из gin.Context.
 func Audit(c *gin.Context, event string, extra ...zap.Field) {
-	fields := make([]zap.Field, 0, len(extra)+3)
+	fields := make([]zap.Field, 0, len(extra)+4)
 	fields = append(fields,
 		zap.Bool("audit", true),
 		zap.String("event", event),
 		zap.String("client_ip", c.ClientIP()),
+		zap.String("request_id", middleware.GetRequestID(c)),
 	)
 	fields = append(fields, extra...)
 	auditLogger.Info("audit", fields...)

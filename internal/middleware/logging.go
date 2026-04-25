@@ -23,6 +23,7 @@ func Logging(logger *zap.Logger) gin.HandlerFunc {
 			zap.Int("status", status),
 			zap.Duration("latency", latency),
 			zap.String("client_ip", clientIP),
+			zap.String("request_id", GetRequestID(c)),
 		)
 	}
 }
