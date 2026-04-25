@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/pro100kartochki/mozgoemka/internal/domain"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
 )
 
 type DeckRepository struct {

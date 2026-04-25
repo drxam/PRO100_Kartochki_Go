@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pro100kartochki/mozgoemka/internal/domain"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 )

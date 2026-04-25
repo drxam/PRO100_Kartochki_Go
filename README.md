@@ -37,10 +37,10 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 
 ## Запуск без docker
 
-1. Поднять PostgreSQL и создать БД `mozgoemka`:
+1. Поднять PostgreSQL и создать БД `pro100_kartochki`:
 
    ```bash
-   psql -U postgres -c "CREATE DATABASE mozgoemka;"
+   psql -U postgres -c "CREATE DATABASE pro100_kartochki;"
    ```
 
 2. Применить миграции (по порядку):
@@ -79,7 +79,7 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 | Переменная | По умолчанию | Назначение |
 |---|---|---|
 | `SERVER_PORT` | `8080` | Порт HTTP/HTTPS-сервера |
-| `DB_HOST` / `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME` / `DB_SSLMODE` | `localhost / 5432 / postgres / postgres / mozgoemka / disable` | Реквизиты Postgres (или используйте `DATABASE_DSN` целиком) |
+| `DB_HOST` / `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME` / `DB_SSLMODE` | `localhost / 5432 / postgres / postgres / pro100_kartochki / disable` | Реквизиты Postgres (или используйте `DATABASE_DSN` целиком) |
 | `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | — | Секреты подписи (обязательно поменять в проде) |
 | `JWT_ACCESS_TTL` / `JWT_REFRESH_TTL` | `15m` / `720h` | Время жизни токенов |
 | `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD` | пусто | Если заданы — при старте создаётся/повышается админ |

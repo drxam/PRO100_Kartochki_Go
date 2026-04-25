@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pro100kartochki/mozgoemka/internal/domain"
-	"github.com/pro100kartochki/mozgoemka/internal/middleware"
-	"github.com/pro100kartochki/mozgoemka/internal/service"
-	"github.com/pro100kartochki/mozgoemka/pkg/validator"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/middleware"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/service"
+	"github.com/drxam/PRO100_Kartochki_Go/pkg/validator"
 )
 
 const maxAvatarSize = 5 << 20 // 5MB

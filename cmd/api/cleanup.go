@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/pro100kartochki/mozgoemka/internal/repository"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/repository"
 	"go.uber.org/zap"
 )
 

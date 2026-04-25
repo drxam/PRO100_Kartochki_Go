@@ -7,8 +7,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/pro100kartochki/mozgoemka/internal/domain"
-	"github.com/pro100kartochki/mozgoemka/pkg/jwt"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
+	"github.com/drxam/PRO100_Kartochki_Go/pkg/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 

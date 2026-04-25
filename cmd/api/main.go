@@ -11,26 +11,26 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/pro100kartochki/mozgoemka/internal/config"
-	"github.com/pro100kartochki/mozgoemka/internal/domain"
-	"github.com/pro100kartochki/mozgoemka/internal/handler"
-	"github.com/pro100kartochki/mozgoemka/internal/middleware"
-	"github.com/pro100kartochki/mozgoemka/internal/repository"
-	"github.com/pro100kartochki/mozgoemka/internal/service"
-	"github.com/pro100kartochki/mozgoemka/pkg/jwt"
-	"github.com/pro100kartochki/mozgoemka/pkg/validator"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/config"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/handler"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/middleware"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/repository"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/service"
+	"github.com/drxam/PRO100_Kartochki_Go/pkg/jwt"
+	"github.com/drxam/PRO100_Kartochki_Go/pkg/validator"
 	"go.uber.org/zap"
 	"golang.org/x/time/rate"
 
-	_ "github.com/pro100kartochki/mozgoemka/docs"
+	_ "github.com/drxam/PRO100_Kartochki_Go/docs"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @title           МозгоЁмка API
+// @title           PRO100_Kartochki API
 // @version         1.0
-// @description     REST API для приложения карточек МозгоЁмка
+// @description     REST API для образовательной платформы «PRO100_Карточки»
 // @host            localhost:8080
 // @BasePath        /api
 // @securityDefinitions.apikey BearerAuth

@@ -81,7 +81,7 @@ func Load() *Config {
 		port := getEnv("DB_PORT", "5432")
 		user := getEnv("DB_USER", "postgres")
 		pass := getEnv("DB_PASSWORD", "postgres")
-		dbname := getEnv("DB_NAME", "mozgoemka")
+		dbname := getEnv("DB_NAME", "pro100_kartochki")
 		sslmode := getEnv("DB_SSLMODE", "disable")
 		dsn = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", user, pass, host, port, dbname, sslmode)
 	}

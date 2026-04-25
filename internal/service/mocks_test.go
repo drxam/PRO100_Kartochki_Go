@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pro100kartochki/mozgoemka/internal/domain"
-	"github.com/pro100kartochki/mozgoemka/pkg/jwt"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
+	"github.com/drxam/PRO100_Kartochki_Go/pkg/jwt"
 )
 
 // Минимальные in-memory моки UserStore / RefreshTokenStore / PasswordResetStore

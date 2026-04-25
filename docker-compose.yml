@@ -9,14 +9,14 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: mozgoemka
+      POSTGRES_DB: pro100_kartochki
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./migrations:/migrations:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d mozgoemka"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pro100_kartochki"]
       interval: 2s
       timeout: 3s
       retries: 20
@@ -36,7 +36,7 @@ services:
     command: |
       'for f in /migrations/*.up.sql; do
         echo "==> applying $$f";
-        psql -h postgres -U postgres -d mozgoemka -v ON_ERROR_STOP=1 -f "$$f" || exit 1;
+        psql -h postgres -U postgres -d pro100_kartochki -v ON_ERROR_STOP=1 -f "$$f" || exit 1;
       done'
     restart: "no"
 
@@ -51,7 +51,7 @@ services:
       DB_PORT: 5432
       DB_USER: postgres
       DB_PASSWORD: postgres
-      DB_NAME: mozgoemka
+      DB_NAME: pro100_kartochki
       DB_SSLMODE: disable
       JWT_ACCESS_SECRET: change-me-access
       JWT_REFRESH_SECRET: change-me-refresh

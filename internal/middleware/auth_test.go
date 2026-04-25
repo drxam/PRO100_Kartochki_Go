@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pro100kartochki/mozgoemka/internal/domain"
-	"github.com/pro100kartochki/mozgoemka/pkg/jwt"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
+	"github.com/drxam/PRO100_Kartochki_Go/pkg/jwt"
 	"github.com/stretchr/testify/require"
 )
 

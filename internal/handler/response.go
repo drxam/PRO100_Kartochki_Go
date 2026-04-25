@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pro100kartochki/mozgoemka/internal/middleware"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/middleware"
 	"go.uber.org/zap"
 )
 

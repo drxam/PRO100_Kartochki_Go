@@ -50,7 +50,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AdminUsersListResponse"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.AdminUsersListResponse"
                         }
                     },
                     "401": {
@@ -92,7 +92,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AdminUserBrief"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.AdminUserBrief"
                         }
                     },
                     "404": {
@@ -166,7 +166,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AdminBlockUserRequest"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.AdminBlockUserRequest"
                         }
                     }
                 ],
@@ -214,7 +214,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AdminSetRoleRequest"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.AdminSetRoleRequest"
                         }
                     }
                 ],
@@ -256,7 +256,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.ForgotPasswordRequest"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.ForgotPasswordRequest"
                         }
                     }
                 ],
@@ -264,7 +264,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.ForgotPasswordResponse"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.ForgotPasswordResponse"
                         }
                     },
                     "400": {
@@ -295,7 +295,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.LoginRequest"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.LoginRequest"
                         }
                     }
                 ],
@@ -303,7 +303,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AuthLoginResponse"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.AuthLoginResponse"
                         }
                     },
                     "401": {
@@ -344,7 +344,7 @@ const docTemplate = `{
                         "name": "body",
                         "in": "body",
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.RefreshRequest"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.RefreshRequest"
                         }
                     }
                 ],
@@ -380,7 +380,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.RefreshRequest"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.RefreshRequest"
                         }
                     }
                 ],
@@ -388,7 +388,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AuthRefreshResponse"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.AuthRefreshResponse"
                         }
                     },
                     "401": {
@@ -425,7 +425,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.RegisterRequest"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.RegisterRequest"
                         }
                     }
                 ],
@@ -433,7 +433,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AuthRegisterResponse"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.AuthRegisterResponse"
                         }
                     },
                     "400": {
@@ -470,7 +470,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.ResetPasswordRequest"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.ResetPasswordRequest"
                         }
                     }
                 ],
@@ -514,7 +514,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.Category"
+                                "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.Category"
                             }
                         }
                     }
@@ -543,7 +543,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.CreateCategoryRequest"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.CreateCategoryRequest"
                         }
                     }
                 ],
@@ -551,7 +551,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.Category"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.Category"
                         }
                     },
                     "400": {
@@ -581,7 +581,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.Tag"
+                                "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.Tag"
                             }
                         }
                     }
@@ -610,7 +610,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.CreateTagRequest"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.CreateTagRequest"
                         }
                     }
                 ],
@@ -618,7 +618,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.Tag"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.Tag"
                         }
                     },
                     "400": {
@@ -651,7 +651,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.UserProfileResponse"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.UserProfileResponse"
                         }
                     },
                     "401": {
@@ -685,7 +685,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.UpdateProfileRequest"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.UpdateProfileRequest"
                         }
                     }
                 ],
@@ -693,7 +693,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.User"
+                            "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.User"
                         }
                     },
                     "401": {
@@ -752,7 +752,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_pro100kartochki_mozgoemka_internal_domain.AdminBlockUserRequest": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.AdminBlockUserRequest": {
             "type": "object",
             "properties": {
                 "blocked": {
@@ -760,7 +760,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.AdminSetRoleRequest": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.AdminSetRoleRequest": {
             "type": "object",
             "required": [
                 "role"
@@ -771,7 +771,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.AdminUserBrief": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.AdminUserBrief": {
             "type": "object",
             "properties": {
                 "avatar_url": {
@@ -803,21 +803,21 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.AdminUsersListResponse": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.AdminUsersListResponse": {
             "type": "object",
             "properties": {
                 "pagination": {
-                    "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.Pagination"
+                    "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.Pagination"
                 },
                 "users": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AdminUserBrief"
+                        "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.AdminUserBrief"
                     }
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.AuthLoginResponse": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.AuthLoginResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -827,11 +827,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AuthUserFull"
+                    "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.AuthUserFull"
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.AuthRefreshResponse": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.AuthRefreshResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -842,7 +842,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.AuthRegisterResponse": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.AuthRegisterResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -852,11 +852,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.AuthUserBrief"
+                    "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.AuthUserBrief"
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.AuthUserBrief": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.AuthUserBrief": {
             "type": "object",
             "properties": {
                 "email": {
@@ -870,7 +870,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.AuthUserFull": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.AuthUserFull": {
             "type": "object",
             "properties": {
                 "avatar_url": {
@@ -890,7 +890,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.Category": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.Category": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -904,7 +904,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.CreateCategoryRequest": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.CreateCategoryRequest": {
             "type": "object",
             "required": [
                 "name"
@@ -916,7 +916,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.CreateTagRequest": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.CreateTagRequest": {
             "type": "object",
             "required": [
                 "name"
@@ -928,7 +928,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.ForgotPasswordRequest": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.ForgotPasswordRequest": {
             "type": "object",
             "required": [
                 "email"
@@ -939,7 +939,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.ForgotPasswordResponse": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.ForgotPasswordResponse": {
             "type": "object",
             "properties": {
                 "message": {
@@ -950,7 +950,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.LoginRequest": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.LoginRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -966,7 +966,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.Pagination": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.Pagination": {
             "type": "object",
             "properties": {
                 "limit": {
@@ -980,7 +980,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.RefreshRequest": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.RefreshRequest": {
             "type": "object",
             "required": [
                 "refresh_token"
@@ -991,7 +991,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.RegisterRequest": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.RegisterRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -1007,7 +1007,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.ResetPasswordRequest": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.ResetPasswordRequest": {
             "type": "object",
             "required": [
                 "new_password",
@@ -1023,7 +1023,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.Tag": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.Tag": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -1037,7 +1037,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.UpdateProfileRequest": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.UpdateProfileRequest": {
             "type": "object",
             "properties": {
                 "username": {
@@ -1045,7 +1045,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.User": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.User": {
             "type": "object",
             "properties": {
                 "avatar_url": {
@@ -1080,7 +1080,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.UserProfileResponse": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.UserProfileResponse": {
             "type": "object",
             "properties": {
                 "avatar_url": {
@@ -1099,14 +1099,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "stats": {
-                    "$ref": "#/definitions/github_com_pro100kartochki_mozgoemka_internal_domain.UserStats"
+                    "$ref": "#/definitions/github_com_drxam_PRO100_Kartochki_Go_internal_domain.UserStats"
                 },
                 "username": {
                     "type": "string"
                 }
             }
         },
-        "github_com_pro100kartochki_mozgoemka_internal_domain.UserStats": {
+        "github_com_drxam_PRO100_Kartochki_Go_internal_domain.UserStats": {
             "type": "object",
             "properties": {
                 "cards_count": {
@@ -1145,8 +1145,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "МозгоЁмка API",
-	Description:      "REST API для приложения карточек МозгоЁмка",
+	Title:            "PRO100_Kartochki API",
+	Description:      "REST API для образовательной платформы «PRO100_Карточки»",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

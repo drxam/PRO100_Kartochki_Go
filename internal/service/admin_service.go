@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/pro100kartochki/mozgoemka/internal/domain"
-	"github.com/pro100kartochki/mozgoemka/internal/repository"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/repository"
 )
 
 var (
