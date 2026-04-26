@@ -150,7 +150,9 @@ func main() {
 		}
 
 		api.GET("/categories", categoryHandler.List)
+		api.GET("/categories/:id", categoryHandler.GetByID)
 		api.GET("/tags", tagHandler.List)
+		api.GET("/tags/:id", tagHandler.GetByID)
 		api.GET("/public/decks", deckHandler.ListPublicPaginated)
 		api.GET("/public/decks/:id", deckHandler.GetPublicByID)
 
@@ -179,7 +181,8 @@ func main() {
 			auth.PUT("/cards/:id", cardHandler.Update)
 			auth.DELETE("/cards/:id", cardHandler.Delete)
 
-			// Админский раздел: управление учётными записями (модуль «Пользователи и доступ»).
+			// Админский раздел: управление учётными записями (модуль «Пользователи и доступ»)
+			// и модерация контента (модуль «Учебный контент»).
 			admin := auth.Group("/admin")
 			admin.Use(middleware.RequireRole(domain.RoleAdmin))
 			{
@@ -188,6 +191,13 @@ func main() {
 				admin.PATCH("/users/:id/block", adminHandler.BlockUser)
 				admin.PATCH("/users/:id/role", adminHandler.SetUserRole)
 				admin.DELETE("/users/:id", adminHandler.DeleteUser)
+
+				// Модерация учебного контента
+				admin.DELETE("/decks/:id", deckHandler.AdminDelete)
+				admin.PUT("/categories/:id", categoryHandler.Update)
+				admin.DELETE("/categories/:id", categoryHandler.Delete)
+				admin.PUT("/tags/:id", tagHandler.Update)
+				admin.DELETE("/tags/:id", tagHandler.Delete)
 			}
 		}
 	}

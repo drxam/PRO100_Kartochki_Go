@@ -83,6 +83,17 @@ func (r *TagRepository) List(ctx context.Context) ([]domain.Tag, error) {
 	return list, rows.Err()
 }
 
+func (r *TagRepository) Update(ctx context.Context, t *domain.Tag) error {
+	query := `UPDATE tags SET name=$2 WHERE id=$1 RETURNING id`
+	var id int
+	return r.db.Pool.QueryRow(ctx, query, t.ID, t.Name).Scan(&id)
+}
+
+func (r *TagRepository) Delete(ctx context.Context, id int) error {
+	_, err := r.db.Pool.Exec(ctx, `DELETE FROM tags WHERE id = $1`, id)
+	return err
+}
+
 // ListWithSearch возвращает теги с опциональным поиском по имени.
 func (r *TagRepository) ListWithSearch(ctx context.Context, search string) ([]domain.Tag, error) {
 	if search == "" {

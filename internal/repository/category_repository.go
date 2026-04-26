@@ -62,3 +62,14 @@ func (r *CategoryRepository) List(ctx context.Context) ([]domain.Category, error
 	}
 	return list, rows.Err()
 }
+
+func (r *CategoryRepository) Update(ctx context.Context, c *domain.Category) error {
+	query := `UPDATE categories SET name=$2 WHERE id=$1 RETURNING id`
+	var id int
+	return r.db.Pool.QueryRow(ctx, query, c.ID, c.Name).Scan(&id)
+}
+
+func (r *CategoryRepository) Delete(ctx context.Context, id int) error {
+	_, err := r.db.Pool.Exec(ctx, `DELETE FROM categories WHERE id = $1`, id)
+	return err
+}

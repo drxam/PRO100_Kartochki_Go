@@ -163,8 +163,8 @@ type UpdateDeckRequest struct {
 
 type CreateCardRequest struct {
 	DeckID     *int   `json:"deck_id,omitempty"` // обязателен для POST /api/cards
-	Question   string `json:"question" binding:"required"`
-	Answer     string `json:"answer" binding:"required"`
+	Question   string `json:"question" binding:"required,max=5000"`
+	Answer     string `json:"answer" binding:"required,max=5000"`
 	CategoryID *int   `json:"category_id,omitempty"`
 	TagIDs     []int  `json:"tag_ids,omitempty"`
 }
@@ -192,8 +192,8 @@ type CardsListResponse struct {
 }
 
 type UpdateCardRequest struct {
-	Question   *string `json:"question,omitempty"`
-	Answer     *string `json:"answer,omitempty"`
+	Question   *string `json:"question,omitempty" binding:"omitempty,min=1,max=5000"`
+	Answer     *string `json:"answer,omitempty" binding:"omitempty,min=1,max=5000"`
 	CategoryID *int    `json:"category_id,omitempty"`
 	TagIDs     []int   `json:"tag_ids,omitempty"`
 }
@@ -213,6 +213,14 @@ type TagsResponse struct {
 }
 
 type CreateTagRequest struct {
+	Name string `json:"name" binding:"required,max=100"`
+}
+
+type UpdateCategoryRequest struct {
+	Name string `json:"name" binding:"required,max=100"`
+}
+
+type UpdateTagRequest struct {
 	Name string `json:"name" binding:"required,max=100"`
 }
 

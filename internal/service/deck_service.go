@@ -6,7 +6,10 @@ import (
 	"time"
 
 	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
+<<<<<<< Updated upstream
 	"github.com/drxam/PRO100_Kartochki_Go/internal/repository"
+=======
+>>>>>>> Stashed changes
 )
 
 var (
@@ -14,15 +17,51 @@ var (
 	ErrDeckForbidden = errors.New("нет доступа к набору")
 )
 
-type DeckService struct {
-	deckRepo     *repository.DeckRepository
-	cardRepo     *repository.CardRepository
-	userRepo     *repository.UserRepository
-	categoryRepo *repository.CategoryRepository
-	tagRepo      *repository.TagRepository
+// DeckStore — контракт репозитория наборов для unit-тестов.
+type DeckStore interface {
+	Create(ctx context.Context, d *domain.Deck) error
+	GetByID(ctx context.Context, id int) (*domain.Deck, error)
+	ListByUserID(ctx context.Context, userID int) ([]domain.Deck, error)
+	ListByUserIDWithFilters(ctx context.Context, userID int, page, limit int, categoryID *int, search string) ([]domain.Deck, int, error)
+	ListPublic(ctx context.Context, limit, offset int) ([]domain.Deck, error)
+	ListPublicWithFilters(ctx context.Context, page, limit int, categoryID *int, search string, sortBy string) ([]domain.Deck, int, error)
+	Update(ctx context.Context, d *domain.Deck) error
+	Delete(ctx context.Context, id int) error
+	SetDeckTags(ctx context.Context, deckID int, tagIDs []int) error
+	GetDeckTagIDs(ctx context.Context, deckID int) ([]int, error)
 }
 
-func NewDeckService(deckRepo *repository.DeckRepository, cardRepo *repository.CardRepository, userRepo *repository.UserRepository, categoryRepo *repository.CategoryRepository, tagRepo *repository.TagRepository) *DeckService {
+// DeckCardStore — минимальный контракт card-репозитория для DeckService.
+type DeckCardStore interface {
+	CountByDeckID(ctx context.Context, deckID int) (int, error)
+	ListByDeckID(ctx context.Context, deckID int) ([]domain.Card, error)
+	GetCardTagIDs(ctx context.Context, cardID int) ([]int, error)
+}
+
+// DeckUserStore — минимальный контракт user-репозитория для DeckService.
+type DeckUserStore interface {
+	GetByID(ctx context.Context, id int) (*domain.User, error)
+}
+
+// DeckCategoryStore — минимальный контракт категорий для DeckService.
+type DeckCategoryStore interface {
+	GetByID(ctx context.Context, id int) (*domain.Category, error)
+}
+
+// DeckTagStore — минимальный контракт тегов для DeckService.
+type DeckTagStore interface {
+	GetByIDs(ctx context.Context, ids []int) ([]domain.Tag, error)
+}
+
+type DeckService struct {
+	deckRepo     DeckStore
+	cardRepo     DeckCardStore
+	userRepo     DeckUserStore
+	categoryRepo DeckCategoryStore
+	tagRepo      DeckTagStore
+}
+
+func NewDeckService(deckRepo DeckStore, cardRepo DeckCardStore, userRepo DeckUserStore, categoryRepo DeckCategoryStore, tagRepo DeckTagStore) *DeckService {
 	return &DeckService{
 		deckRepo:     deckRepo,
 		cardRepo:     cardRepo,
@@ -212,6 +251,15 @@ func (s *DeckService) Delete(ctx context.Context, id int, userID int) error {
 	}
 	if d.UserID != userID {
 		return ErrDeckForbidden
+	}
+	return s.deckRepo.Delete(ctx, id)
+}
+
+// DeleteAny удаляет набор без проверки владельца (для администраторов).
+func (s *DeckService) DeleteAny(ctx context.Context, id int) error {
+	d, err := s.deckRepo.GetByID(ctx, id)
+	if err != nil || d == nil {
+		return ErrDeckNotFound
 	}
 	return s.deckRepo.Delete(ctx, id)
 }

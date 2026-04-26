@@ -81,6 +81,10 @@ func (h *CardHandler) Create(c *gin.Context) {
 	}
 	card, err := h.cardService.Create(c.Request.Context(), deckID, userID, req)
 	if err != nil {
+		if err == service.ErrCardNotFound {
+			NotFound(c, "набор карточек не найден")
+			return
+		}
 		if err == service.ErrCardForbidden {
 			Forbidden(c, err.Error())
 			return

@@ -6,22 +6,53 @@ import (
 	"time"
 
 	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
+<<<<<<< Updated upstream
 	"github.com/drxam/PRO100_Kartochki_Go/internal/repository"
+=======
+>>>>>>> Stashed changes
 )
 
 var (
-	ErrCardNotFound   = errors.New("карточка не найдена")
-	ErrCardForbidden  = errors.New("нет доступа к карточке")
+	ErrCardNotFound  = errors.New("карточка не найдена")
+	ErrCardForbidden = errors.New("нет доступа к карточке")
 )
 
-type CardService struct {
-	cardRepo     *repository.CardRepository
-	deckRepo     *repository.DeckRepository
-	categoryRepo *repository.CategoryRepository
-	tagRepo      *repository.TagRepository
+// CardStore — контракт репозитория карточек для unit-тестов.
+type CardStore interface {
+	Create(ctx context.Context, c *domain.Card) error
+	GetByID(ctx context.Context, id int) (*domain.Card, error)
+	ListByDeckID(ctx context.Context, deckID int) ([]domain.Card, error)
+	CountByDeckID(ctx context.Context, deckID int) (int, error)
+	ListByUserIDWithFilters(ctx context.Context, userID int, page, limit int, categoryID *int, tagID *int, search string) ([]domain.Card, int, error)
+	Update(ctx context.Context, c *domain.Card) error
+	Delete(ctx context.Context, id int) error
+	SetCardTags(ctx context.Context, cardID int, tagIDs []int) error
+	GetCardTagIDs(ctx context.Context, cardID int) ([]int, error)
 }
 
-func NewCardService(cardRepo *repository.CardRepository, deckRepo *repository.DeckRepository, categoryRepo *repository.CategoryRepository, tagRepo *repository.TagRepository) *CardService {
+// CardDeckStore — минимальный контракт deck-репозитория для CardService.
+type CardDeckStore interface {
+	GetByID(ctx context.Context, id int) (*domain.Deck, error)
+}
+
+// CardCategoryStore — минимальный контракт категорий для CardService.
+type CardCategoryStore interface {
+	GetByID(ctx context.Context, id int) (*domain.Category, error)
+}
+
+// CardTagStore — минимальный контракт тегов для CardService.
+type CardTagStore interface {
+	GetByIDs(ctx context.Context, ids []int) ([]domain.Tag, error)
+}
+
+type CardService struct {
+	cardRepo     CardStore
+	deckRepo     CardDeckStore
+	categoryRepo CardCategoryStore
+	tagRepo      CardTagStore
+}
+
+func NewCardService(cardRepo CardStore, deckRepo CardDeckStore, categoryRepo CardCategoryStore, tagRepo CardTagStore) *CardService {
 	return &CardService{
 		cardRepo:     cardRepo,
 		deckRepo:     deckRepo,
@@ -35,7 +66,13 @@ func (s *CardService) Create(ctx context.Context, deckID int, userID int, req do
 		deckID = *req.DeckID
 	}
 	deck, err := s.deckRepo.GetByID(ctx, deckID)
-	if err != nil || deck == nil || deck.UserID != userID {
+	if err != nil {
+		return nil, err
+	}
+	if deck == nil {
+		return nil, ErrCardNotFound
+	}
+	if deck.UserID != userID {
 		return nil, ErrCardForbidden
 	}
 	c := &domain.Card{
@@ -59,7 +96,10 @@ func (s *CardService) Create(ctx context.Context, deckID int, userID int, req do
 
 func (s *CardService) GetByID(ctx context.Context, id int, userID int) (*domain.Card, error) {
 	c, err := s.cardRepo.GetByID(ctx, id)
-	if err != nil || c == nil {
+	if err != nil {
+		return nil, err
+	}
+	if c == nil {
 		return nil, ErrCardNotFound
 	}
 	deck, _ := s.deckRepo.GetByID(ctx, c.DeckID)

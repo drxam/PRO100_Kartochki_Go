@@ -218,3 +218,21 @@ func (h *DeckHandler) GetPublicByID(c *gin.Context) {
 	}
 	JSON(c, deck)
 }
+
+// AdminDelete — DELETE /api/admin/decks/:id (только для администратора)
+func (h *DeckHandler) AdminDelete(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		BadRequestSimple(c, "неверный ID")
+		return
+	}
+	if err := h.deckService.DeleteAny(c.Request.Context(), id); err != nil {
+		if err == service.ErrDeckNotFound {
+			NotFound(c, err.Error())
+			return
+		}
+		InternalError(c, "ошибка удаления набора")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Deck deleted successfully"})
+}
