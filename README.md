@@ -63,14 +63,16 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 /internal
   /domain              — модели и DTO
   /handler             — HTTP-обработчики, audit-лог, response-хелперы
-  /service             — бизнес-логика (AuthService, AdminService, UserService)
+  /service             — бизнес-логика (AuthService, AdminService, UserService,
+                         CardService, DeckService, CategoryService, TagService)
   /repository          — pgx-репозитории, фильтрация мягко удалённых
   /middleware          — Auth (с RBAC и token_version), CORS, rate limit, RequestID, logging
+  /mailer              — отправка писем (SMTP / Noop fallback)
   /config              — чтение env, дефолты
 /pkg
   /jwt                 — JWT (HS256, jti, token_version)
   /validator           — кастомные теги email/password
-/migrations            — SQL-миграции (001…004)
+/migrations            — SQL-миграции (001…005)
 /docs                  — Swagger/OpenAPI (генерируется `make swagger`)
 ```
 
@@ -114,6 +116,17 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 
 `/auth/*` под жёстким rate-limiter (защита от брутфорса).
 
+### Публичные справочники и контент
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| `GET` | `/api/categories` | Список категорий |
+| `GET` | `/api/categories/:id` | Получить категорию |
+| `GET` | `/api/tags` | Список тегов |
+| `GET` | `/api/tags/:id` | Получить тег |
+| `GET` | `/api/public/decks` | Публичные колоды (с пагинацией) |
+| `GET` | `/api/public/decks/:id` | Открыть публичную колоду |
+
 ### Auth (с Bearer-токеном)
 
 | Метод | Путь | Назначение |
@@ -123,7 +136,16 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 | `PUT` | `/api/users/me` | Обновление профиля |
 | `POST` | `/api/users/me/avatar` | Загрузка аватара (multipart, JPG/PNG ≤ 5 MB) |
 
-### Admin (требует роль `admin`)
+### Контент пользователя (Bearer)
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| `GET/POST` | `/api/decks`, `/api/decks/:id`, `/api/decks/:id/cards` | CRUD своих колод |
+| `PUT/DELETE` | `/api/decks/:id` | Обновить/удалить свою колоду |
+| `GET/POST` | `/api/cards`, `/api/cards/:id` | CRUD карточек |
+| `POST` | `/api/categories`, `/api/tags` | Создать категорию/тег |
+
+### Admin — управление учётными записями (роль `admin`)
 
 | Метод | Путь | Назначение |
 |---|---|---|
@@ -132,6 +154,16 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 | `PATCH` | `/api/admin/users/:id/block` | `{"blocked": true\|false}` |
 | `PATCH` | `/api/admin/users/:id/role` | `{"role": "user\|moderator\|admin"}` |
 | `DELETE` | `/api/admin/users/:id` | Мягкое удаление |
+
+### Admin — модерация контента (роль `admin`)
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| `DELETE` | `/api/admin/decks/:id` | Удалить любую колоду |
+| `PUT` | `/api/admin/categories/:id` | Переименовать категорию |
+| `DELETE` | `/api/admin/categories/:id` | Удалить категорию (FK на decks/cards → NULL) |
+| `PUT` | `/api/admin/tags/:id` | Переименовать тег |
+| `DELETE` | `/api/admin/tags/:id` | Удалить тег |
 
 При блокировке, смене роли и сбросе пароля сервер инкрементирует
 `token_version` пользователя, что **мгновенно** инвалидирует все его ранее
@@ -205,8 +237,9 @@ go test -cover ./...        # с покрытием
 go test -run TestHandler_   ./internal/handler/...   # один пакет/префикс
 ```
 
-78 unit-тестов: AuthService, AdminService, validator, RateLimiter, RequestID,
-CORS, Auth+RequireRole middleware, handler-слой через `httptest`.
+143 unit-теста: AuthService, AdminService, CardService, DeckService,
+CategoryService, TagService, validator, RateLimiter, RequestID, CORS,
+Auth+RequireRole middleware, handler-слой через `httptest`.
 
 ## Полезные make-таргеты
 
@@ -235,4 +268,4 @@ make compose-psql           # psql внутри контейнера
 | Блокировка и удаление учётных записей | ✅ `/admin/users/:id/block`, `DELETE /admin/users/:id` |
 | Защита API от несанкционированного доступа | ✅ Auth middleware + token_version + опц. TLS 1.2+ |
 | Rate limiting | ✅ token-bucket per IP, отдельно жёсткий на `/auth/*` |
-| Unit-тесты | ✅ 78 кейсов |
+| Unit-тесты | ✅ 143 кейса |
