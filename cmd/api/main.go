@@ -14,6 +14,7 @@ import (
 	"github.com/drxam/PRO100_Kartochki_Go/internal/config"
 	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
 	"github.com/drxam/PRO100_Kartochki_Go/internal/handler"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/mailer"
 	"github.com/drxam/PRO100_Kartochki_Go/internal/middleware"
 	"github.com/drxam/PRO100_Kartochki_Go/internal/repository"
 	"github.com/drxam/PRO100_Kartochki_Go/internal/service"
@@ -71,6 +72,29 @@ func main() {
 	// Фоновая чистка истёкших токенов (refresh + password reset).
 	go runCleanupLoop(ctx, logger, tokenRepo, resetRepo, 1*time.Hour)
 
+	// Mailer: реальный SMTP, если задан SMTP_HOST; иначе NoopMailer (только лог).
+	var mailerSvc mailer.Mailer
+	if cfg.SMTP.Host != "" {
+		smtpMailer, err := mailer.NewSMTP(mailer.SMTPConfig{
+			Host:     cfg.SMTP.Host,
+			Port:     cfg.SMTP.Port,
+			Username: cfg.SMTP.Username,
+			Password: cfg.SMTP.Password,
+			From:     cfg.SMTP.From,
+			TLSMode:  cfg.SMTP.TLSMode,
+		}, logger)
+		if err != nil {
+			logger.Fatal("mailer init", zap.Error(err))
+		}
+		mailerSvc = smtpMailer
+		logger.Info("mailer", zap.String("type", "smtp"),
+			zap.String("host", cfg.SMTP.Host), zap.Int("port", cfg.SMTP.Port))
+	} else {
+		mailerSvc = &mailer.NoopMailer{Log: logger}
+		logger.Warn("mailer", zap.String("type", "noop"),
+			zap.String("reason", "SMTP_HOST не задан — письма не отправляются"))
+	}
+
 	jwtManager := jwt.NewManager(jwt.Config{
 		AccessSecret:  cfg.JWT.AccessSecret,
 		RefreshSecret: cfg.JWT.RefreshSecret,
@@ -80,7 +104,7 @@ func main() {
 
 	v := validator.New()
 
-	authSvc := service.NewAuthService(userRepo, tokenRepo, resetRepo, jwtManager)
+	authSvc := service.NewAuthService(userRepo, tokenRepo, resetRepo, jwtManager, mailerSvc, cfg.AppPublicURL)
 	userSvc := service.NewUserService(userRepo, deckRepo, cardRepo)
 	userSvc.SetUploadConfig(cfg.UploadPath, cfg.BaseURL)
 	adminSvc := service.NewAdminService(userRepo, tokenRepo)

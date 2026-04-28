@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/mailer"
 	"github.com/drxam/PRO100_Kartochki_Go/internal/middleware"
 	"github.com/drxam/PRO100_Kartochki_Go/internal/service"
 	"github.com/drxam/PRO100_Kartochki_Go/pkg/jwt"
@@ -44,7 +45,8 @@ func newTestEnv(t *testing.T) *testEnv {
 		RefreshTTL:    1 * time.Hour,
 	})
 
-	authSvc := service.NewAuthService(users, tokens, resets, jm)
+	authSvc := service.NewAuthService(users, tokens, resets, jm,
+		&mailer.NoopMailer{}, "http://localhost:8080")
 	adminSvc := service.NewAdminService(users, tokens)
 	v := validator.New()
 

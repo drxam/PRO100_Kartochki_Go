@@ -89,6 +89,8 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 | `CORS_ORIGINS` | `*` | Через запятую: `https://app.example.com,https://admin.example.com` |
 | `TLS_CERT_FILE` / `TLS_KEY_FILE` | пусто | Если оба заданы — сервер слушает HTTPS (TLS ≥ 1.2) |
 | `UPLOAD_PATH` / `SERVER_BASE_URL` | `./uploads` / `http://localhost:8080` | Путь и базовый URL для аватаров |
+| `APP_PUBLIC_URL` | = `SERVER_BASE_URL` | Куда ведут ссылки в письмах (frontend-адрес) |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USERNAME` / `SMTP_PASSWORD` / `SMTP_FROM` / `SMTP_TLS` | пусто | Параметры SMTP для писем восстановления пароля. Если `SMTP_HOST` пустой — письма не отправляются (только лог). См. раздел «SMTP» ниже. |
 
 ## API
 
@@ -136,6 +138,45 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 выпущенные access-токены (без ожидания истечения exp).
 
 Полный спецификации — в Swagger UI: `/swagger/index.html`.
+
+## SMTP (отправка писем)
+
+При запросе сброса пароля сервис отправляет email со ссылкой
+вида `{APP_PUBLIC_URL}/reset-password?token=...`. Токен одноразовый,
+живёт 1 час.
+
+**Без SMTP** (`SMTP_HOST` пустой) — письма не уходят, попытки отправки
+логируются с уровнем `info`. Это режим по умолчанию для unit-тестов и
+быстрой локальной разработки.
+
+**Gmail (рекомендуется для защиты):**
+
+1. Создай аккаунт Gmail (можно технический, отдельный от личного).
+2. Включи 2-факторную аутентификацию: <https://myaccount.google.com/security>.
+3. Сгенерируй **App Password**: <https://myaccount.google.com/apppasswords>
+   (16 символов вида `abcd efgh ijkl mnop` — пробелы можно не убирать).
+4. Положи в `.env`:
+
+   ```bash
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_TLS=starttls
+   SMTP_USERNAME=you@gmail.com
+   SMTP_PASSWORD=abcd efgh ijkl mnop
+   SMTP_FROM=you@gmail.com
+   APP_PUBLIC_URL=http://localhost:8080
+   ```
+
+5. Перезапусти `docker compose up` — на любой `forgot-password` придёт
+   реальное письмо.
+
+**Yandex** (`smtp.yandex.ru:465`, `SMTP_TLS=ssl`),
+**Mail.ru** (`smtp.mail.ru:465`, `SMTP_TLS=ssl`) — настраиваются
+аналогично, App Password выдаётся в настройках безопасности почты.
+
+> **App Password нельзя коммитить в git!** Он живёт только в `.env`
+> (`.gitignore` исключает `.env`), и в проде передаётся через секреты
+> деплоя (GitHub Actions secrets, Vault и т. п.).
 
 ## Безопасность
 

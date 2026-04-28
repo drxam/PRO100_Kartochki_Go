@@ -16,10 +16,24 @@ type Config struct {
 	JWT                      JWT
 	RateLimit                RateLimit
 	BootstrapAdmin           BootstrapAdmin
+	SMTP                     SMTP
 	CORSOrigins              []string
 	UploadPath               string
 	BaseURL                  string
+	AppPublicURL             string // куда ведут ссылки в письмах (например, https://app.example.com)
 	PasswordResetReturnToken bool
+}
+
+// SMTP — параметры SMTP-сервера для отправки транзакционных писем
+// (восстановление пароля и т. п.). Если Host пустой, используется NoopMailer
+// (письма не уходят, только логируются).
+type SMTP struct {
+	Host     string
+	Port     int
+	Username string
+	Password string
+	From     string
+	TLSMode  string // "starttls" | "ssl" | "none"
 }
 
 // BootstrapAdmin — опциональное автоматическое создание/повышение учётной
@@ -118,9 +132,18 @@ func Load() *Config {
 			Email:    getEnv("BOOTSTRAP_ADMIN_EMAIL", ""),
 			Password: getEnv("BOOTSTRAP_ADMIN_PASSWORD", ""),
 		},
-		CORSOrigins: parseCSV(getEnv("CORS_ORIGINS", "")),
+		SMTP: SMTP{
+			Host:     getEnv("SMTP_HOST", ""),
+			Port:     getEnvInt("SMTP_PORT", 587),
+			Username: getEnv("SMTP_USERNAME", ""),
+			Password: getEnv("SMTP_PASSWORD", ""),
+			From:     getEnv("SMTP_FROM", ""),
+			TLSMode:  getEnv("SMTP_TLS", "starttls"),
+		},
+		CORSOrigins:              parseCSV(getEnv("CORS_ORIGINS", "")),
 		UploadPath:               uploadPath,
 		BaseURL:                  baseURL,
+		AppPublicURL:             getEnv("APP_PUBLIC_URL", baseURL),
 		PasswordResetReturnToken: getEnv("PASSWORD_RESET_RETURN_TOKEN", "false") == "true",
 	}
 }

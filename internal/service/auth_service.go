@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/mailer"
 	"github.com/drxam/PRO100_Kartochki_Go/pkg/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -57,10 +58,12 @@ var (
 const passwordResetTTL = 1 * time.Hour
 
 type AuthService struct {
-	userRepo   UserStore
-	tokenRepo  RefreshTokenStore
-	resetRepo  PasswordResetStore
-	jwtManager JWTManager
+	userRepo     UserStore
+	tokenRepo    RefreshTokenStore
+	resetRepo    PasswordResetStore
+	jwtManager   JWTManager
+	mailer       mailer.Mailer
+	appPublicURL string // куда ведут ссылки в письмах
 }
 
 func NewAuthService(
@@ -68,12 +71,19 @@ func NewAuthService(
 	tokenRepo RefreshTokenStore,
 	resetRepo PasswordResetStore,
 	jwtManager JWTManager,
+	mailerSvc mailer.Mailer,
+	appPublicURL string,
 ) *AuthService {
+	if mailerSvc == nil {
+		mailerSvc = &mailer.NoopMailer{}
+	}
 	return &AuthService{
-		userRepo:   userRepo,
-		tokenRepo:  tokenRepo,
-		resetRepo:  resetRepo,
-		jwtManager: jwtManager,
+		userRepo:     userRepo,
+		tokenRepo:    tokenRepo,
+		resetRepo:    resetRepo,
+		jwtManager:   jwtManager,
+		mailer:       mailerSvc,
+		appPublicURL: appPublicURL,
 	}
 }
 
@@ -187,6 +197,13 @@ func (s *AuthService) RequestPasswordReset(ctx context.Context, email string) (t
 	if err := s.resetRepo.Create(ctx, prt); err != nil {
 		return "", false, err
 	}
+
+	// Отправляем письмо со ссылкой. Ошибка отправки НЕ выдаётся клиенту —
+	// это могло бы выдать существование email (account enumeration);
+	// mailer сам логирует проблему.
+	body := mailer.PasswordResetHTML(s.appPublicURL, raw)
+	_ = s.mailer.Send(ctx, email, mailer.PasswordResetSubject, body)
+
 	return raw, true, nil
 }
 

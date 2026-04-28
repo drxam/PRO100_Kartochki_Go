@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
+	"github.com/drxam/PRO100_Kartochki_Go/internal/mailer"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,7 +16,8 @@ func newTestAuthService() (*AuthService, *userStoreMock, *refreshStoreMock, *res
 	users := newUserStoreMock()
 	tokens := newRefreshStoreMock()
 	resets := newResetStoreMock()
-	svc := NewAuthService(users, tokens, resets, newTestJWT())
+	svc := NewAuthService(users, tokens, resets, newTestJWT(),
+		&mailer.NoopMailer{}, "http://localhost:8080")
 	return svc, users, tokens, resets
 }
 
