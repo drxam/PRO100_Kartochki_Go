@@ -125,6 +125,21 @@ func (m *cardStoreMock) SetCardTags(ctx context.Context, cardID int, tagIDs []in
 	return nil
 }
 
+func (m *cardStoreMock) CopyCard(ctx context.Context, newDeckID int, src domain.Card) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	c := &domain.Card{
+		ID:         m.nextID,
+		DeckID:     newDeckID,
+		Question:   src.Question,
+		Answer:     src.Answer,
+		CategoryID: src.CategoryID,
+	}
+	m.nextID++
+	m.cards[c.ID] = c
+	return nil
+}
+
 func (m *cardStoreMock) GetCardTagIDs(ctx context.Context, cardID int) ([]int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()

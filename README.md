@@ -1,9 +1,10 @@
 # PRO100_Kartochki — Backend
 
 REST API для образовательной платформы «PRO100_Карточки» на Go (Clean Architecture).
-Этот репозиторий содержит модуль **«Пользователи и доступ»** (ТЗ §4.1):
-регистрация, JWT (access + refresh), роли и RBAC, восстановление пароля,
-блокировка/удаление учёток, rate limiting, audit-лог, опциональный TLS.
+Реализованы два серверных модуля из ТЗ:
+
+- **«Пользователи и доступ»** (ТЗ §4.1) — регистрация, JWT, роли, восстановление пароля, блокировка, audit-лог, rate limiting, TLS.
+- **«Учебный контент»** — полный CRUD карточек, наборов, категорий и тегов; публичные/приватные наборы; прогресс обучения (SM-2); сессии изучения; избранное; копирование наборов.
 
 ## Требования
 
@@ -63,16 +64,16 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 /internal
   /domain              — модели и DTO
   /handler             — HTTP-обработчики, audit-лог, response-хелперы
-  /service             — бизнес-логика (AuthService, AdminService, UserService,
-                         CardService, DeckService, CategoryService, TagService)
+  /service             — бизнес-логика (AuthService, AdminService, UserService)
   /repository          — pgx-репозитории, фильтрация мягко удалённых
   /middleware          — Auth (с RBAC и token_version), CORS, rate limit, RequestID, logging
-  /mailer              — отправка писем (SMTP / Noop fallback)
   /config              — чтение env, дефолты
 /pkg
   /jwt                 — JWT (HS256, jti, token_version)
   /validator           — кастомные теги email/password
-/migrations            — SQL-миграции (001…005)
+/migrations            — SQL-миграции (001…006)
+/pkg
+  /sm2                 — алгоритм интервального повторения SuperMemo SM-2
 /docs                  — Swagger/OpenAPI (генерируется `make swagger`)
 ```
 
@@ -91,8 +92,6 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 | `CORS_ORIGINS` | `*` | Через запятую: `https://app.example.com,https://admin.example.com` |
 | `TLS_CERT_FILE` / `TLS_KEY_FILE` | пусто | Если оба заданы — сервер слушает HTTPS (TLS ≥ 1.2) |
 | `UPLOAD_PATH` / `SERVER_BASE_URL` | `./uploads` / `http://localhost:8080` | Путь и базовый URL для аватаров |
-| `APP_PUBLIC_URL` | = `SERVER_BASE_URL` | Куда ведут ссылки в письмах (frontend-адрес) |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USERNAME` / `SMTP_PASSWORD` / `SMTP_FROM` / `SMTP_TLS` | пусто | Параметры SMTP для писем восстановления пароля. Если `SMTP_HOST` пустой — письма не отправляются (только лог). См. раздел «SMTP» ниже. |
 
 ## API
 
@@ -116,17 +115,6 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 
 `/auth/*` под жёстким rate-limiter (защита от брутфорса).
 
-### Публичные справочники и контент
-
-| Метод | Путь | Назначение |
-|---|---|---|
-| `GET` | `/api/categories` | Список категорий |
-| `GET` | `/api/categories/:id` | Получить категорию |
-| `GET` | `/api/tags` | Список тегов |
-| `GET` | `/api/tags/:id` | Получить тег |
-| `GET` | `/api/public/decks` | Публичные колоды (с пагинацией) |
-| `GET` | `/api/public/decks/:id` | Открыть публичную колоду |
-
 ### Auth (с Bearer-токеном)
 
 | Метод | Путь | Назначение |
@@ -136,16 +124,68 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 | `PUT` | `/api/users/me` | Обновление профиля |
 | `POST` | `/api/users/me/avatar` | Загрузка аватара (multipart, JPG/PNG ≤ 5 MB) |
 
-### Контент пользователя (Bearer)
+### Учебный контент (публичные, без авторизации)
 
 | Метод | Путь | Назначение |
 |---|---|---|
-| `GET/POST` | `/api/decks`, `/api/decks/:id`, `/api/decks/:id/cards` | CRUD своих колод |
-| `PUT/DELETE` | `/api/decks/:id` | Обновить/удалить свою колоду |
-| `GET/POST` | `/api/cards`, `/api/cards/:id` | CRUD карточек |
-| `POST` | `/api/categories`, `/api/tags` | Создать категорию/тег |
+| `GET` | `/api/categories` | Список категорий |
+| `GET` | `/api/categories/:id` | Категория по ID |
+| `GET` | `/api/tags?search=` | Список тегов (с поиском) |
+| `GET` | `/api/tags/:id` | Тег по ID |
+| `GET` | `/api/public/decks?page=&limit=&category_id=&search=&sort_by=` | Публичные наборы |
+| `GET` | `/api/public/decks/:id` | Публичный набор с карточками |
 
-### Admin — управление учётными записями (роль `admin`)
+### Учебный контент (с Bearer-токеном)
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| `GET` | `/api/decks?page=&limit=&category_id=&search=` | Мои наборы |
+| `POST` | `/api/decks` | Создать набор |
+| `GET` | `/api/decks/:id` | Набор по ID |
+| `PUT` | `/api/decks/:id` | Обновить набор |
+| `DELETE` | `/api/decks/:id` | Удалить набор |
+| `POST` | `/api/public/decks/:id/copy` | Скопировать публичный набор себе |
+| `GET` | `/api/decks/:id/cards` | Карточки набора |
+| `GET` | `/api/cards?page=&limit=&category_id=&tag_id=&search=` | Все мои карточки |
+| `POST` | `/api/cards` | Создать карточку (`deck_id` в body) |
+| `POST` | `/api/decks/:id/cards` | Создать карточку в наборе |
+| `GET` | `/api/cards/:id` | Карточка по ID |
+| `PUT` | `/api/cards/:id` | Обновить карточку |
+| `DELETE` | `/api/cards/:id` | Удалить карточку |
+| `POST` | `/api/categories` | Создать категорию |
+| `POST` | `/api/tags` | Создать тег |
+
+### Прогресс и обучение (с Bearer-токеном)
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| `GET` | `/api/decks/:id/progress` | Статистика прогресса по набору |
+| `POST` | `/api/decks/:id/study/start` | Начать сессию обучения |
+| `GET` | `/api/study/sessions` | История сессий |
+| `GET` | `/api/study/sessions/:id` | Сессия по ID |
+| `POST` | `/api/study/sessions/:id/review` | Ответить на карточку (quality 0–5, SM-2) |
+| `POST` | `/api/study/sessions/:id/finish` | Завершить сессию досрочно |
+
+#### Алгоритм SM-2
+
+Оценки (`quality`):
+
+| 0 | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| Полный провал | Неверно, трудно | Неверно, легко | Верно с трудом | Верно с паузой | Идеальный ответ |
+
+При `quality ≥ 3` интервал растёт (1 → 6 → N×EF дней). При `< 3` — сброс.
+Карточка переходит в `mastered` после ≥ 3 успешных повторений с интервалом ≥ 21 дня.
+
+### Избранное (с Bearer-токеном)
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| `GET` | `/api/favorites?page=&limit=` | Избранные наборы |
+| `POST` | `/api/decks/:id/favorite` | Добавить в избранное |
+| `DELETE` | `/api/decks/:id/favorite` | Убрать из избранного |
+
+### Admin (требует роль `admin`)
 
 | Метод | Путь | Назначение |
 |---|---|---|
@@ -154,14 +194,9 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 | `PATCH` | `/api/admin/users/:id/block` | `{"blocked": true\|false}` |
 | `PATCH` | `/api/admin/users/:id/role` | `{"role": "user\|moderator\|admin"}` |
 | `DELETE` | `/api/admin/users/:id` | Мягкое удаление |
-
-### Admin — модерация контента (роль `admin`)
-
-| Метод | Путь | Назначение |
-|---|---|---|
-| `DELETE` | `/api/admin/decks/:id` | Удалить любую колоду |
+| `DELETE` | `/api/admin/decks/:id` | Удалить любой набор (модерация) |
 | `PUT` | `/api/admin/categories/:id` | Переименовать категорию |
-| `DELETE` | `/api/admin/categories/:id` | Удалить категорию (FK на decks/cards → NULL) |
+| `DELETE` | `/api/admin/categories/:id` | Удалить категорию |
 | `PUT` | `/api/admin/tags/:id` | Переименовать тег |
 | `DELETE` | `/api/admin/tags/:id` | Удалить тег |
 
@@ -170,45 +205,6 @@ Swagger UI: <http://localhost:8080/swagger/index.html>
 выпущенные access-токены (без ожидания истечения exp).
 
 Полный спецификации — в Swagger UI: `/swagger/index.html`.
-
-## SMTP (отправка писем)
-
-При запросе сброса пароля сервис отправляет email со ссылкой
-вида `{APP_PUBLIC_URL}/reset-password?token=...`. Токен одноразовый,
-живёт 1 час.
-
-**Без SMTP** (`SMTP_HOST` пустой) — письма не уходят, попытки отправки
-логируются с уровнем `info`. Это режим по умолчанию для unit-тестов и
-быстрой локальной разработки.
-
-**Gmail (рекомендуется для защиты):**
-
-1. Создай аккаунт Gmail (можно технический, отдельный от личного).
-2. Включи 2-факторную аутентификацию: <https://myaccount.google.com/security>.
-3. Сгенерируй **App Password**: <https://myaccount.google.com/apppasswords>
-   (16 символов вида `abcd efgh ijkl mnop` — пробелы можно не убирать).
-4. Положи в `.env`:
-
-   ```bash
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=587
-   SMTP_TLS=starttls
-   SMTP_USERNAME=you@gmail.com
-   SMTP_PASSWORD=abcd efgh ijkl mnop
-   SMTP_FROM=you@gmail.com
-   APP_PUBLIC_URL=http://localhost:8080
-   ```
-
-5. Перезапусти `docker compose up` — на любой `forgot-password` придёт
-   реальное письмо.
-
-**Yandex** (`smtp.yandex.ru:465`, `SMTP_TLS=ssl`),
-**Mail.ru** (`smtp.mail.ru:465`, `SMTP_TLS=ssl`) — настраиваются
-аналогично, App Password выдаётся в настройках безопасности почты.
-
-> **App Password нельзя коммитить в git!** Он живёт только в `.env`
-> (`.gitignore` исключает `.env`), и в проде передаётся через секреты
-> деплоя (GitHub Actions secrets, Vault и т. п.).
 
 ## Безопасность
 
@@ -237,9 +233,8 @@ go test -cover ./...        # с покрытием
 go test -run TestHandler_   ./internal/handler/...   # один пакет/префикс
 ```
 
-143 unit-теста: AuthService, AdminService, CardService, DeckService,
-CategoryService, TagService, validator, RateLimiter, RequestID, CORS,
-Auth+RequireRole middleware, handler-слой через `httptest`.
+~130 unit-тестов: AuthService, AdminService, CardService, DeckService, CategoryService,
+TagService, validator, RateLimiter, RequestID, CORS, Auth+RequireRole middleware, handler-слой через `httptest`.
 
 ## Полезные make-таргеты
 
@@ -256,16 +251,76 @@ make compose-down           # остановить compose
 make compose-psql           # psql внутри контейнера
 ```
 
-## Реализованные требования ТЗ §4.1
+## Примеры запросов
+
+### Начать сессию обучения
+
+```bash
+curl -X POST http://localhost:8080/api/decks/1/study/start \
+  -H "Authorization: Bearer <token>"
+
+# Response:
+# { "session_id": 42, "total_cards": 10, "card": {"id": 5, "question": "Что такое горутина?", "answer": "..."} }
+```
+
+### Ответить на карточку
+
+```bash
+curl -X POST http://localhost:8080/api/study/sessions/42/review \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"card_id": 5, "quality": 4}'
+
+# Response: следующая карточка или итоги сессии
+```
+
+### Скопировать публичный набор
+
+```bash
+curl -X POST http://localhost:8080/api/public/decks/7/copy \
+  -H "Authorization: Bearer <token>"
+# → 201, копия набора в вашей коллекции
+```
+
+### Добавить в избранное
+
+```bash
+curl -X POST http://localhost:8080/api/decks/7/favorite \
+  -H "Authorization: Bearer <token>"
+# → { "deck_id": 7, "is_favorite": true }
+```
+
+## Реализованные требования ТЗ
+
+### Модуль «Пользователи и доступ» (ТЗ §4.1)
 
 | Требование | Статус |
 |---|---|
 | Регистрация пользователей | ✅ `POST /api/auth/register` |
-| Аутентификация и авторизация (access + refresh) | ✅ `/auth/login`, `/auth/refresh`, JWT с `jti` и `token_version` |
-| Управление ролями и правами доступа | ✅ `RequireRole`, `PATCH /admin/users/:id/role` |
-| Восстановление пароля | ✅ `/auth/forgot-password` + `/auth/reset-password`, одноразовый токен, TTL 1 час |
-| Управление профилями | ✅ `GET/PUT /users/me`, `POST /users/me/avatar` |
-| Блокировка и удаление учётных записей | ✅ `/admin/users/:id/block`, `DELETE /admin/users/:id` |
-| Защита API от несанкционированного доступа | ✅ Auth middleware + token_version + опц. TLS 1.2+ |
-| Rate limiting | ✅ token-bucket per IP, отдельно жёсткий на `/auth/*` |
-| Unit-тесты | ✅ 143 кейса |
+| Аутентификация и авторизация (access + refresh) | ✅ JWT с `jti` и `token_version` |
+| Управление ролями и правами доступа | ✅ `RequireRole`, PATCH admin/role |
+| Восстановление пароля | ✅ одноразовый токен, TTL 1 час |
+| Управление профилями | ✅ `GET/PUT /users/me`, аватар |
+| Блокировка и удаление учётных записей | ✅ `/admin/users/:id/block`, soft delete |
+| Защита API | ✅ Auth middleware + token_version + TLS 1.2+ |
+| Rate limiting | ✅ token-bucket per IP |
+| Unit-тесты | ✅ |
+
+### Модуль «Учебный контент» (ТЗ §4.1)
+
+| Требование | Статус |
+|---|---|
+| CRUD карточек | ✅ |
+| CRUD наборов (публичные/приватные) | ✅ |
+| CRUD категорий | ✅ |
+| CRUD тегов | ✅ |
+| Привязка к категориям и тегам | ✅ |
+| Поиск/фильтрация по категориям и тегам | ✅ |
+| Просмотр публичных наборов | ✅ |
+| Валидация данных | ✅ |
+| Административные функции (модерация) | ✅ |
+| Unit-тесты бизнес-логики | ✅ |
+| Прогресс обучения (SM-2) | ✅ |
+| Сессии обучения | ✅ |
+| Копирование публичных наборов | ✅ |
+| Избранные наборы | ✅ |

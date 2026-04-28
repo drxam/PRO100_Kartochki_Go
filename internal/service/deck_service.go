@@ -32,6 +32,7 @@ type DeckCardStore interface {
 	CountByDeckID(ctx context.Context, deckID int) (int, error)
 	ListByDeckID(ctx context.Context, deckID int) ([]domain.Card, error)
 	GetCardTagIDs(ctx context.Context, cardID int) ([]int, error)
+	CopyCard(ctx context.Context, newDeckID int, src domain.Card) error
 }
 
 // DeckUserStore — минимальный контракт user-репозитория для DeckService.
@@ -311,6 +312,51 @@ func (s *DeckService) ListPublicPaginated(ctx context.Context, page, limit int, 
 			Total: total,
 		},
 	}, nil
+}
+
+// CopyDeck копирует публичный набор (со всеми карточками) в коллекцию пользователя.
+func (s *DeckService) CopyDeck(ctx context.Context, deckID int, userID int) (*domain.Deck, error) {
+	src, err := s.deckRepo.GetByID(ctx, deckID)
+	if err != nil || src == nil {
+		return nil, ErrDeckNotFound
+	}
+	if !src.IsPublic {
+		return nil, ErrDeckForbidden
+	}
+
+	// Создаём копию набора (приватная по умолчанию)
+	newDeck := &domain.Deck{
+		UserID:      userID,
+		Title:       src.Title + " (копия)",
+		Description: src.Description,
+		CategoryID:  src.CategoryID,
+		IsPublic:    false,
+	}
+	if err := s.deckRepo.Create(ctx, newDeck); err != nil {
+		return nil, err
+	}
+
+	// Копируем теги набора
+	tagIDs, _ := s.deckRepo.GetDeckTagIDs(ctx, deckID)
+	if len(tagIDs) > 0 {
+		_ = s.deckRepo.SetDeckTags(ctx, newDeck.ID, tagIDs)
+		newDeck.Tags, _ = s.tagRepo.GetByIDs(ctx, tagIDs)
+	}
+
+	// Копируем карточки
+	srcCards, err := s.cardRepo.ListByDeckID(ctx, deckID)
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range srcCards {
+		_ = s.cardRepo.CopyCard(ctx, newDeck.ID, c)
+	}
+
+	newDeck.CardsCount = len(srcCards)
+	if newDeck.CategoryID != nil {
+		newDeck.Category, _ = s.categoryRepo.GetByID(ctx, *newDeck.CategoryID)
+	}
+	return newDeck, nil
 }
 
 // GetPublicByID возвращает публичный набор по ID (с автором и карточками).

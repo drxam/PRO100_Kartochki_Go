@@ -72,7 +72,16 @@ func main() {
 	// Фоновая чистка истёкших токенов (refresh + password reset).
 	go runCleanupLoop(ctx, logger, tokenRepo, resetRepo, 1*time.Hour)
 
-	// Mailer: реальный SMTP, если задан SMTP_HOST; иначе NoopMailer (только лог).
+	jwtManager := jwt.NewManager(jwt.Config{
+		AccessSecret:  cfg.JWT.AccessSecret,
+		RefreshSecret: cfg.JWT.RefreshSecret,
+		AccessTTL:     cfg.JWT.AccessTTL,
+		RefreshTTL:    cfg.JWT.RefreshTTL,
+	})
+
+	v := validator.New()
+
+	// Mailer: реальный SMTP если задан SMTP_HOST, иначе NoopMailer (только лог).
 	var mailerSvc mailer.Mailer
 	if cfg.SMTP.Host != "" {
 		smtpMailer, err := mailer.NewSMTP(mailer.SMTPConfig{
@@ -87,31 +96,24 @@ func main() {
 			logger.Fatal("mailer init", zap.Error(err))
 		}
 		mailerSvc = smtpMailer
-		logger.Info("mailer", zap.String("type", "smtp"),
-			zap.String("host", cfg.SMTP.Host), zap.Int("port", cfg.SMTP.Port))
 	} else {
-		mailerSvc = &mailer.NoopMailer{Log: logger}
-		logger.Warn("mailer", zap.String("type", "noop"),
-			zap.String("reason", "SMTP_HOST не задан — письма не отправляются"))
+		mailerSvc = &mailer.NoopMailer{}
 	}
-
-	jwtManager := jwt.NewManager(jwt.Config{
-		AccessSecret:  cfg.JWT.AccessSecret,
-		RefreshSecret: cfg.JWT.RefreshSecret,
-		AccessTTL:     cfg.JWT.AccessTTL,
-		RefreshTTL:    cfg.JWT.RefreshTTL,
-	})
-
-	v := validator.New()
 
 	authSvc := service.NewAuthService(userRepo, tokenRepo, resetRepo, jwtManager, mailerSvc, cfg.AppPublicURL)
 	userSvc := service.NewUserService(userRepo, deckRepo, cardRepo)
 	userSvc.SetUploadConfig(cfg.UploadPath, cfg.BaseURL)
 	adminSvc := service.NewAdminService(userRepo, tokenRepo)
+	progressRepo := repository.NewProgressRepository(db)
+	sessionRepo := repository.NewSessionRepository(db)
+	favoriteRepo := repository.NewFavoriteRepository(db)
+
 	categorySvc := service.NewCategoryService(categoryRepo)
 	tagSvc := service.NewTagService(tagRepo)
 	deckSvc := service.NewDeckService(deckRepo, cardRepo, userRepo, categoryRepo, tagRepo)
 	cardSvc := service.NewCardService(cardRepo, deckRepo, categoryRepo, tagRepo)
+	studySvc := service.NewStudyService(progressRepo, sessionRepo, deckRepo, cardRepo)
+	favoriteSvc := service.NewFavoriteService(favoriteRepo, deckRepo)
 
 	handler.SetAuditLogger(logger)
 
@@ -123,6 +125,8 @@ func main() {
 	tagHandler := handler.NewTagHandler(tagSvc, v)
 	deckHandler := handler.NewDeckHandler(deckSvc, v)
 	cardHandler := handler.NewCardHandler(cardSvc, v)
+	studyHandler := handler.NewStudyHandler(studySvc, v)
+	favoriteHandler := handler.NewFavoriteHandler(favoriteSvc)
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
@@ -179,6 +183,7 @@ func main() {
 		api.GET("/tags/:id", tagHandler.GetByID)
 		api.GET("/public/decks", deckHandler.ListPublicPaginated)
 		api.GET("/public/decks/:id", deckHandler.GetPublicByID)
+		// Копирование публичного набора (требует авторизации — регистрируется в auth-группе ниже)
 
 		auth := api.Group("")
 		auth.Use(middleware.Auth(jwtManager, userRepo))
@@ -204,6 +209,24 @@ func main() {
 			auth.GET("/cards/:id", cardHandler.GetByID)
 			auth.PUT("/cards/:id", cardHandler.Update)
 			auth.DELETE("/cards/:id", cardHandler.Delete)
+
+			// Копирование публичного набора
+			auth.POST("/public/decks/:id/copy", deckHandler.CopyDeck)
+
+			// Избранное
+			auth.GET("/favorites", favoriteHandler.List)
+			auth.POST("/decks/:id/favorite", favoriteHandler.Add)
+			auth.DELETE("/decks/:id/favorite", favoriteHandler.Remove)
+
+			// Прогресс обучения
+			auth.GET("/decks/:id/progress", studyHandler.GetDeckProgress)
+			auth.POST("/decks/:id/study/start", studyHandler.StartSession)
+
+			// Сессии обучения
+			auth.GET("/study/sessions", studyHandler.ListSessions)
+			auth.GET("/study/sessions/:id", studyHandler.GetSession)
+			auth.POST("/study/sessions/:id/review", studyHandler.ReviewCard)
+			auth.POST("/study/sessions/:id/finish", studyHandler.FinishSession)
 
 			// Админский раздел: управление учётными записями (модуль «Пользователи и доступ»)
 			// и модерация контента (модуль «Учебный контент»).

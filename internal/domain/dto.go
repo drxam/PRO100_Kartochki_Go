@@ -224,6 +224,88 @@ type UpdateTagRequest struct {
 	Name string `json:"name" binding:"required,max=100"`
 }
 
+// ── Study / Прогресс обучения ────────────────────────────────────────────────
+
+// StudyCard — карточка в режиме обучения (без ответа до раскрытия).
+type StudyCard struct {
+	ID       int    `json:"id"`
+	Question string `json:"question"`
+	Answer   string `json:"answer"`
+	IsNew    bool   `json:"is_new"` // true, если ещё не изучалась
+}
+
+// StartStudyResponse — ответ на POST /decks/:id/study/start
+type StartStudyResponse struct {
+	SessionID  int        `json:"session_id"`
+	Card       *StudyCard `json:"card,omitempty"`
+	TotalCards int        `json:"total_cards"`
+	Status     string     `json:"status"`
+}
+
+// ReviewCardRequest — тело POST /study/sessions/:id/review
+// Quality — оценка по шкале SM-2: 0=провал … 5=идеально.
+// Используем *int чтобы отличить quality=0 от "поле не передано".
+type ReviewCardRequest struct {
+	CardID  int  `json:"card_id" binding:"required"`
+	Quality *int `json:"quality" binding:"required,min=0,max=5"`
+}
+
+// ReviewCardResponse — ответ на POST /study/sessions/:id/review
+type ReviewCardResponse struct {
+	NextCard *StudyCard      `json:"next_card,omitempty"`
+	Summary  *SessionSummary `json:"summary,omitempty"` // заполнен когда сессия завершена
+	Progress CardProgressDTO `json:"progress"`
+}
+
+// CardProgressDTO — публичное представление прогресса по карточке.
+type CardProgressDTO struct {
+	CardID       int     `json:"card_id"`
+	Status       string  `json:"status"`
+	Repetitions  int     `json:"repetitions"`
+	IntervalDays int     `json:"interval_days"`
+	EaseFactor   float64 `json:"ease_factor"`
+	NextReviewAt string  `json:"next_review_at"`
+}
+
+// SessionSummary — итоги завершённой сессии.
+type SessionSummary struct {
+	SessionID     int     `json:"session_id"`
+	CardsReviewed int     `json:"cards_reviewed"`
+	CardsCorrect  int     `json:"cards_correct"`
+	AccuracyPct   float64 `json:"accuracy_pct"`
+	Duration      string  `json:"duration"`
+}
+
+// StudySessionDTO — публичное представление сессии обучения (API-ответ).
+type StudySessionDTO struct {
+	ID            int    `json:"id"`
+	DeckID        int    `json:"deck_id"`
+	CardsTotal    int    `json:"cards_total"`
+	CardsReviewed int    `json:"cards_reviewed"`
+	CardsCorrect  int    `json:"cards_correct"`
+	Status        string `json:"status"`
+	StartedAt     string `json:"started_at"`
+	EndedAt       string `json:"ended_at,omitempty"`
+}
+
+// DeckProgressResponse — ответ GET /decks/:id/progress
+type DeckProgressResponse struct {
+	DeckID        int `json:"deck_id"`
+	CardsTotal    int `json:"cards_total"`
+	CardsNew      int `json:"cards_new"`
+	CardsDue      int `json:"cards_due"`
+	CardsMastered int `json:"cards_mastered"`
+}
+
+// ── Избранное ────────────────────────────────────────────────────────────────
+
+// FavoriteResponse — ответ на добавление/удаление из избранного.
+type FavoriteResponse struct {
+	DeckID     int    `json:"deck_id"`
+	IsFavorite bool   `json:"is_favorite"`
+	Message    string `json:"message"`
+}
+
 // PublicDeckListItem — элемент GET /api/public/decks
 type PublicDeckListItem struct {
 	ID          int        `json:"id"`

@@ -118,6 +118,24 @@ func (r *CardRepository) Delete(ctx context.Context, id int) error {
 	return err
 }
 
+// CopyCard создаёт копию карточки в другом наборе.
+func (r *CardRepository) CopyCard(ctx context.Context, newDeckID int, src domain.Card) error {
+	var newID int
+	err := r.db.Pool.QueryRow(ctx,
+		`INSERT INTO cards (deck_id, question, answer, category_id) VALUES ($1,$2,$3,$4) RETURNING id`,
+		newDeckID, src.Question, src.Answer, src.CategoryID,
+	).Scan(&newID)
+	if err != nil {
+		return err
+	}
+	// Копируем теги карточки
+	tagIDs, err := r.GetCardTagIDs(ctx, src.ID)
+	if err != nil || len(tagIDs) == 0 {
+		return err
+	}
+	return r.SetCardTags(ctx, newID, tagIDs)
+}
+
 func (r *CardRepository) SetCardTags(ctx context.Context, cardID int, tagIDs []int) error {
 	_, err := r.db.Pool.Exec(ctx, `DELETE FROM card_tags WHERE card_id = $1`, cardID)
 	if err != nil {

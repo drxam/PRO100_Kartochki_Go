@@ -219,6 +219,30 @@ func (h *DeckHandler) GetPublicByID(c *gin.Context) {
 	JSON(c, deck)
 }
 
+// CopyDeck — POST /api/public/decks/:id/copy
+func (h *DeckHandler) CopyDeck(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		BadRequestSimple(c, "неверный ID")
+		return
+	}
+	userID := middleware.GetUserID(c)
+	deck, err := h.deckService.CopyDeck(c.Request.Context(), id, userID)
+	if err != nil {
+		if err == service.ErrDeckNotFound {
+			NotFound(c, err.Error())
+			return
+		}
+		if err == service.ErrDeckForbidden {
+			Forbidden(c, "копировать можно только публичные наборы")
+			return
+		}
+		InternalError(c, "ошибка копирования набора")
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"deck": deck, "message": "Набор скопирован в вашу коллекцию"})
+}
+
 // AdminDelete — DELETE /api/admin/decks/:id (только для администратора)
 func (h *DeckHandler) AdminDelete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
