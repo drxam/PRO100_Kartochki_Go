@@ -6,10 +6,6 @@ import (
 	"time"
 
 	"github.com/drxam/PRO100_Kartochki_Go/internal/domain"
-<<<<<<< Updated upstream
-	"github.com/drxam/PRO100_Kartochki_Go/internal/repository"
-=======
->>>>>>> Stashed changes
 )
 
 var (
